@@ -18,7 +18,11 @@ const reductions = {
   createperson: (state, msg) => ({
     people: [
       ...state.people,
-      { id: rndId(), name: msg.name || "Person " + (state.people.length + 1) },
+      {
+        id: rndId(),
+        name: msg.name || "Person " + (state.people.length + 1),
+        weight: msg.weight || 1,
+      },
     ],
   }),
   deleteperson: (state, msg) => ({

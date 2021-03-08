@@ -17,6 +17,7 @@
 
 .questions,
 .options,
+.results,
 .person {
   writing-mode: vertical-rl;
 }

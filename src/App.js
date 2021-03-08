@@ -35,7 +35,7 @@ class App extends React.Component {
 }
 
 function Voting(props) {
-  const numberOfColumns = props.people.length + 3;
+  const numberOfColumns = props.people.length + 4;
   return (
     <div>
       <h1>{props.title}</h1>
@@ -43,6 +43,7 @@ function Voting(props) {
         <table>
           <colgroup>
             <col width="30em" />
+            <col />
             <col />
             {props.people.map((person) => (
               <col key={person.id} />
@@ -55,6 +56,9 @@ function Voting(props) {
               </th>
               <th valign="top">
                 <div className="options">Options</div>
+              </th>
+              <th>
+                <div className="results">Results</div>
               </th>
               {props.people.map((person) => (
                 <th key={person.id} valign="top">
@@ -135,10 +139,12 @@ function Question(props) {
 function OptionRow(props) {
   const { option, people, send } = props;
   const votingDone = optionHasAllVotes(option, people);
+  const result = votingDone ? calculateResult(option, people).toFixed(2) : "";
   return (
     <tr key={option.id}>
       <td></td>
       <td className="option"> {option.title}</td>
+      <td>{result}</td>
       {people.map((person) => (
         <VoteCell
           key={person.id}
@@ -164,6 +170,16 @@ function optionHasAllVotes(option, people) {
     }
   }
   return true;
+}
+
+function calculateResult(option, people) {
+  let votes = 0,
+    weight = 0;
+  for (let person of people) {
+    votes += option.votes[person.id] * person.weight;
+    weight += person.weight;
+  }
+  return votes / weight;
 }
 
 function VoteCell(props) {
