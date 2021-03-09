@@ -34,18 +34,18 @@ class App extends React.Component {
   }
 }
 
-function Voting(props) {
-  const numberOfColumns = props.people.length + 4;
+function Voting({ people, title, send, questions }) {
+  const numberOfColumns = people.length + 4;
   return (
     <div>
-      <h1>{props.title}</h1>
+      <h1>{title}</h1>
       <div>
         <table>
           <colgroup>
             <col />
             <col />
             <col />
-            {props.people.map((person) => (
+            {people.map((person) => (
               <col key={person.id} />
             ))}
           </colgroup>
@@ -60,13 +60,13 @@ function Voting(props) {
               <th valign="top">
                 <div className="results">Results</div>
               </th>
-              {props.people.map((person) => (
-                <Person key={person.id} person={person} send={props.send} />
+              {people.map((person) => (
+                <Person key={person.id} person={person} send={send} />
               ))}
               <th valign="top">
                 <IconButton
                   tooltip="Add person"
-                  onClick={() => props.send({ op: "createperson" })}
+                  onClick={() => send({ op: "createperson" })}
                 >
                   <Add />
                 </IconButton>
@@ -74,20 +74,20 @@ function Voting(props) {
             </tr>
           </thead>
           <tbody>
-            {props.questions.map((question) => (
+            {questions.map((question) => (
               <Question
                 key={question.id}
                 question={question}
                 numberOfColumns={numberOfColumns}
-                people={props.people}
-                send={props.send}
+                people={people}
+                send={send}
               />
             ))}
             <tr>
               <td colSpan={numberOfColumns} className="createquestion">
                 <IconButton
                   tooltip="Add question"
-                  onClick={() => props.send({ op: "createquestion" })}
+                  onClick={() => send({ op: "createquestion" })}
                 >
                   <Add />
                 </IconButton>
@@ -100,34 +100,34 @@ function Voting(props) {
   );
 }
 
-function Person(props) {
+function Person({ person, send }) {
   const pPopover = utils.PopoverHelper("ne");
   return (
-    <th key={props.person.id} valign="top">
+    <th key={person.id} valign="top">
       <div className="person" {...pPopover.elementProps}>
-        {props.person.name}
+        {person.name}
       </div>
       <Popover {...pPopover.PopoverProps}>
-        <EditPerson person={props.person} send={props.send} />
+        <EditPerson person={person} send={send} />
       </Popover>
     </th>
   );
 }
 
-function EditPerson(props) {
+function EditPerson({ person, send }) {
   const qDelete = utils.ConfirmHelper({
     title: "Delete this person?",
-    text: props.person.name,
+    text: person.name,
     fun: () => {
-      props.send({
+      send({
         op: "deleteperson",
-        id: props.person.id,
+        id: person.id,
       });
     },
   });
   return (
     <div>
-      <div>Name: {props.person.name}</div>
+      <div>Name: {person.name}</div>
       <div>
         <Button {...qDelete.elementProps}>Delete</Button>
         {qDelete.dialog}
@@ -136,34 +136,29 @@ function EditPerson(props) {
   );
 }
 
-function Question(props) {
+function Question({ question, numberOfColumns, send, people }) {
   const qPopover = utils.PopoverHelper("nw");
   return [
-    <tr key={props.question.id}>
-      <td colSpan={props.numberOfColumns} className="question">
-        <div {...qPopover.elementProps}>{props.question.title}</div>
+    <tr key={question.id}>
+      <td colSpan={numberOfColumns} className="question">
+        <div {...qPopover.elementProps}>{question.title}</div>
         <Popover {...qPopover.PopoverProps}>
-          <EditQuestion question={props.question} send={props.send} />
+          <EditQuestion question={question} send={send} />
         </Popover>
       </td>
     </tr>,
-    ...props.question.options.map((option) => (
-      <OptionRow
-        key={option.id}
-        option={option}
-        people={props.people}
-        send={props.send}
-      />
+    ...question.options.map((option) => (
+      <OptionRow key={option.id} option={option} people={people} send={send} />
     )),
-    <tr key={"addoptionfor_" + props.question.id}>
+    <tr key={"addoptionfor_" + question.id}>
       <td></td>
-      <td colSpan={props.numberOfColumns - 1} className="createoption">
+      <td colSpan={numberOfColumns - 1} className="createoption">
         <IconButton
           tooltip="Add option"
           onClick={() =>
-            props.send({
+            send({
               op: "createoption",
-              questionid: props.question.id,
+              questionid: question.id,
             })
           }
         >
@@ -174,20 +169,20 @@ function Question(props) {
   ];
 }
 
-function EditQuestion(props) {
+function EditQuestion({ question, send }) {
   const qDelete = utils.ConfirmHelper({
     title: "Delete this question?",
-    text: props.question.title,
+    text: question.title,
     fun: () => {
-      props.send({
+      send({
         op: "deletequestion",
-        id: props.question.id,
+        id: question.id,
       });
     },
   });
   return (
     <div>
-      <div>Title: {props.question.title}</div>
+      <div>Title: {question.title}</div>
       <div>
         <Button {...qDelete.elementProps}>Delete</Button>
         {qDelete.dialog}
@@ -196,8 +191,7 @@ function EditQuestion(props) {
   );
 }
 
-function OptionRow(props) {
-  const { option, people, send } = props;
+function OptionRow({ option, people, send }) {
   const votingDone = optionHasAllVotes(option, people);
   const result = votingDone ? calculateResult(option, people).toFixed(2) : "";
   const oPopover = utils.PopoverHelper("nw");
@@ -225,21 +219,21 @@ function OptionRow(props) {
   );
 }
 
-function EditOption(props) {
+function EditOption({ option, send }) {
   const qDelete = utils.ConfirmHelper({
     title: "Delete this option?",
-    text: props.option.title,
+    text: option.title,
     fun: () => {
-      props.send({
+      send({
         op: "deleteoption",
-        id: props.option.id,
-        questionid: props.option.questionid,
+        id: option.id,
+        questionid: option.questionid,
       });
     },
   });
   return (
     <div>
-      <div>Title: {props.option.title}</div>
+      <div>Title: {option.title}</div>
       <div>
         <Button {...qDelete.elementProps}>Delete</Button>
         {qDelete.dialog}
@@ -271,8 +265,7 @@ function calculateResult(option, people) {
   return votes / weight;
 }
 
-function VoteCell(props) {
-  const { option, person, votingDone } = props;
+function VoteCell({ option, person, votingDone, send }) {
   const vote = option.votes[person.id];
   const isCast = Number.isInteger(vote);
   const show = votingDone ? vote : isCast ? "✓" : "✧";
@@ -285,7 +278,7 @@ function VoteCell(props) {
       <Popover {...votePopover.PopoverProps}>
         <Button
           onClick={() =>
-            props.send({
+            send({
               op: "vote",
               questionid: option.questionid,
               optionid: option.id,
@@ -301,8 +294,7 @@ function VoteCell(props) {
   );
 }
 
-function IconButton(props) {
-  const { tooltip, ...buttonprops } = props;
+function IconButton({ tooltip, ...buttonprops }) {
   return (
     <Tooltip title={tooltip}>
       <Fab color="primary" size="small" {...buttonprops}></Fab>
