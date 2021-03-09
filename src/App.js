@@ -1,16 +1,15 @@
 import "./App.css";
 import React from "react";
 import reduce from "./reduce.js";
-import * as utils from "./utils.js";
-import { Button, Fab, Tooltip, Popover } from "@material-ui/core";
-import { Add } from "@material-ui/icons";
+import { rndId, PopoverHelper, AddButton, DeleteButton } from "./utils.js";
+import { Button, Popover } from "@material-ui/core";
 
 class App extends React.Component {
   constructor(props) {
     super(props);
 
     // Poor man's router
-    const id = window.location.hash.slice(1).toUpperCase() || utils.rndId(32);
+    const id = window.location.hash.slice(1).toUpperCase() || rndId(32);
     window.location.hash = id;
     this.state = reduce({}, { op: "createdocument", id });
   }
@@ -64,12 +63,10 @@ function Voting({ people, title, send, questions }) {
                 <Person key={person.id} person={person} send={send} />
               ))}
               <th valign="top">
-                <IconButton
+                <AddButton
                   tooltip="Add person"
-                  onClick={() => send({ op: "createperson" })}
-                >
-                  <Add />
-                </IconButton>
+                  fun={() => send({ op: "createperson" })}
+                />
               </th>
             </tr>
           </thead>
@@ -85,12 +82,10 @@ function Voting({ people, title, send, questions }) {
             ))}
             <tr>
               <td colSpan={numberOfColumns} className="createquestion">
-                <IconButton
+                <AddButton
                   tooltip="Add question"
-                  onClick={() => send({ op: "createquestion" })}
-                >
-                  <Add />
-                </IconButton>
+                  fun={() => send({ op: "createquestion" })}
+                />
               </td>
             </tr>
           </tbody>
@@ -101,7 +96,7 @@ function Voting({ people, title, send, questions }) {
 }
 
 function Person({ person, send }) {
-  const pPopover = utils.PopoverHelper("ne");
+  const pPopover = PopoverHelper("ne");
   return (
     <th key={person.id} valign="top">
       <div className="person" {...pPopover.elementProps}>
@@ -115,29 +110,28 @@ function Person({ person, send }) {
 }
 
 function EditPerson({ person, send }) {
-  const qDelete = utils.ConfirmHelper({
-    title: "Delete this person?",
-    text: person.name,
-    fun: () => {
-      send({
-        op: "deleteperson",
-        id: person.id,
-      });
-    },
-  });
   return (
-    <div>
+    <div className="editor">
       <div>Name: {person.name}</div>
       <div>
-        <Button {...qDelete.elementProps}>Delete</Button>
-        {qDelete.dialog}
+        <DeleteButton
+          title="Delete this person?"
+          text={person.name}
+          tooltip="Delete person"
+          fun={() => {
+            send({
+              op: "deleteperson",
+              id: person.id,
+            });
+          }}
+        />
       </div>
     </div>
   );
 }
 
 function Question({ question, numberOfColumns, send, people }) {
-  const qPopover = utils.PopoverHelper("nw");
+  const qPopover = PopoverHelper("nw");
   return [
     <tr key={question.id}>
       <td colSpan={numberOfColumns} className="question">
@@ -153,39 +147,36 @@ function Question({ question, numberOfColumns, send, people }) {
     <tr key={"addoptionfor_" + question.id}>
       <td></td>
       <td colSpan={numberOfColumns - 1} className="createoption">
-        <IconButton
+        <AddButton
           tooltip="Add option"
-          onClick={() =>
+          fun={() =>
             send({
               op: "createoption",
               questionid: question.id,
             })
           }
-        >
-          <Add />
-        </IconButton>
+        />
       </td>
     </tr>,
   ];
 }
 
 function EditQuestion({ question, send }) {
-  const qDelete = utils.ConfirmHelper({
-    title: "Delete this question?",
-    text: question.title,
-    fun: () => {
-      send({
-        op: "deletequestion",
-        id: question.id,
-      });
-    },
-  });
   return (
-    <div>
+    <div className="editor">
       <div>Title: {question.title}</div>
       <div>
-        <Button {...qDelete.elementProps}>Delete</Button>
-        {qDelete.dialog}
+        <DeleteButton
+          title="Delete this question?"
+          text={question.title}
+          tooltip="Delete question"
+          fun={() => {
+            send({
+              op: "deletequestion",
+              id: question.id,
+            });
+          }}
+        />
       </div>
     </div>
   );
@@ -194,7 +185,7 @@ function EditQuestion({ question, send }) {
 function OptionRow({ option, people, send }) {
   const votingDone = optionHasAllVotes(option, people);
   const result = votingDone ? calculateResult(option, people).toFixed(2) : "";
-  const oPopover = utils.PopoverHelper("nw");
+  const oPopover = PopoverHelper("nw");
   return (
     <tr key={option.id}>
       <td></td>
@@ -220,23 +211,22 @@ function OptionRow({ option, people, send }) {
 }
 
 function EditOption({ option, send }) {
-  const qDelete = utils.ConfirmHelper({
-    title: "Delete this option?",
-    text: option.title,
-    fun: () => {
-      send({
-        op: "deleteoption",
-        id: option.id,
-        questionid: option.questionid,
-      });
-    },
-  });
   return (
-    <div>
+    <div className="editor">
       <div>Title: {option.title}</div>
       <div>
-        <Button {...qDelete.elementProps}>Delete</Button>
-        {qDelete.dialog}
+        <DeleteButton
+          title="Delete this option?"
+          text={option.title}
+          tooltip="Delete option"
+          fun={() => {
+            send({
+              op: "deleteoption",
+              id: option.id,
+              questionid: option.questionid,
+            });
+          }}
+        />
       </div>
     </div>
   );
@@ -269,36 +259,37 @@ function VoteCell({ option, person, votingDone, send }) {
   const vote = option.votes[person.id];
   const isCast = Number.isInteger(vote);
   const show = votingDone ? vote : isCast ? "✓" : "✧";
-  const votePopover = utils.PopoverHelper("ne");
+  const votePopover = PopoverHelper("ne");
   return (
     <td key={person.id}>
       <div className="vote" {...votePopover.elementProps}>
         {show}
       </div>
       <Popover {...votePopover.PopoverProps}>
-        <Button
-          onClick={() =>
-            send({
-              op: "vote",
-              questionid: option.questionid,
-              optionid: option.id,
-              personid: person.id,
-              value: 1 + (option.votes[person.id] || 0),
-            })
-          }
-        >
-          inc
-        </Button>
+        <VoteEdit option={option} person={person} send={send} />
       </Popover>
     </td>
   );
 }
 
-function IconButton({ tooltip, ...buttonprops }) {
+function VoteEdit({ option, person, send }) {
   return (
-    <Tooltip title={tooltip}>
-      <Fab color="primary" size="small" {...buttonprops}></Fab>
-    </Tooltip>
+    <div class="editor">
+      <div>Option: {option.title}</div>
+      <Button
+        onClick={() =>
+          send({
+            op: "vote",
+            questionid: option.questionid,
+            optionid: option.id,
+            personid: person.id,
+            value: 1 + (option.votes[person.id] || 0),
+          })
+        }
+      >
+        inc
+      </Button>
+    </div>
   );
 }
 

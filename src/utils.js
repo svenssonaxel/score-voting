@@ -6,9 +6,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Fab,
   Paper,
+  Tooltip,
 } from "@material-ui/core";
 import Draggable from "react-draggable";
+import { Add, Delete } from "@material-ui/icons";
 
 export function rndId(entropy = 32) {
   const chars = "EHJKRWXY79"; // Uppercase letters and numbers except those that are possible to confuse when reading (A4 B8 G6 I1L O0Q S5 UV Z2) or listening (BDPT3 CZ FS MN).
@@ -23,42 +26,15 @@ export function rndId(entropy = 32) {
 export function PopoverHelper(corner) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const corners = {
-    n: {
-      vertical: "top",
-      horizontal: "center",
-    },
-    ne: {
-      vertical: "top",
-      horizontal: "right",
-    },
-    e: {
-      vertical: "center",
-      horizontal: "right",
-    },
-    se: {
-      vertical: "bottom",
-      horizontal: "right",
-    },
-    s: {
-      vertical: "bottom",
-      horizontal: "center",
-    },
-    sw: {
-      vertical: "bottom",
-      horizontal: "left",
-    },
-    w: {
-      vertical: "center",
-      horizontal: "left",
-    },
-    nw: {
-      vertical: "top",
-      horizontal: "left",
-    },
-    c: {
-      vertical: "center",
-      horizontal: "center",
-    },
+    n: { vertical: "top", horizontal: "center" },
+    ne: { vertical: "top", horizontal: "right" },
+    e: { vertical: "center", horizontal: "right" },
+    se: { vertical: "bottom", horizontal: "right" },
+    s: { vertical: "bottom", horizontal: "center" },
+    sw: { vertical: "bottom", horizontal: "left" },
+    w: { vertical: "center", horizontal: "left" },
+    nw: { vertical: "top", horizontal: "left" },
+    c: { vertical: "center", horizontal: "center" },
   };
   return {
     elementProps: {
@@ -71,6 +47,7 @@ export function PopoverHelper(corner) {
       anchorOrigin: corners[corner],
       transformOrigin: corners[corner],
       disableRestoreFocus: true,
+      PaperProps: { elevation: 24 },
     },
   };
 }
@@ -86,7 +63,7 @@ function PaperComponent(props) {
   );
 }
 
-export function ConfirmHelper({ title, text, fun }) {
+function ConfirmHelper({ title, text, fun }) {
   const [open, setOpen] = React.useState(false);
   return {
     elementProps: { onClick: () => setOpen(true) },
@@ -120,4 +97,32 @@ export function ConfirmHelper({ title, text, fun }) {
       </Dialog>
     ),
   };
+}
+
+export function AddButton({ tooltip, fun }) {
+  return (
+    <Tooltip title={tooltip}>
+      <Fab color="primary" size="small" onClick={fun}>
+        <Add />
+      </Fab>
+    </Tooltip>
+  );
+}
+
+export function DeleteButton({ title, text, tooltip, fun }) {
+  const confirmDelete = ConfirmHelper({
+    title,
+    text,
+    fun,
+  });
+  return (
+    <div>
+      <Tooltip title={tooltip}>
+        <Fab color="secondary" size="small" {...confirmDelete.elementProps}>
+          <Delete />
+        </Fab>
+      </Tooltip>
+      {confirmDelete.dialog}
+    </div>
+  );
 }
