@@ -1,4 +1,14 @@
 import React from "react";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Paper,
+} from "@material-ui/core";
+//import Draggable from "react-draggable";
 
 export function rndId(entropy = 32) {
   const chars = "EHJKRWXY79"; // Uppercase letters and numbers except those that are possible to confuse when reading (A4 B8 G6 I1L O0Q S5 UV Z2) or listening (BDPT3 CZ FS MN).
@@ -62,5 +72,52 @@ export function PopoverHelper(corner) {
       transformOrigin: corners[corner],
       disableRestoreFocus: true,
     },
+  };
+}
+
+function PaperComponent(props) {
+  return (
+    //    <Draggable
+    //      handle="#draggable-dialog-title"
+    //      cancel={'[class*="MuiDialogContent-root"]'}
+    //    >
+    <Paper {...props} />
+    //    </Draggable>
+  );
+}
+
+export function ConfirmHelper({ title, text, fun }) {
+  const [open, setOpen] = React.useState(false);
+  return {
+    elementProps: { onClick: () => setOpen(true) },
+    dialog: (
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        PaperComponent={PaperComponent}
+        aria-labelledby="draggable-dialog-title"
+      >
+        <DialogTitle style={{ cursor: "move" }} id="draggable-dialog-title">
+          {title}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>{text}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus onClick={() => setOpen(false)} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setOpen(false);
+              fun();
+            }}
+            color="primary"
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+    ),
   };
 }

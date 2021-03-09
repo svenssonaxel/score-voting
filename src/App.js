@@ -61,9 +61,7 @@ function Voting(props) {
                 <div className="results">Results</div>
               </th>
               {props.people.map((person) => (
-                <th key={person.id} valign="top">
-                  <div className="person">{person.name}</div>
-                </th>
+                <Person key={person.id} person={person} send={props.send} />
               ))}
               <th valign="top">
                 <IconButton
@@ -102,11 +100,51 @@ function Voting(props) {
   );
 }
 
+function Person(props) {
+  const pPopover = utils.PopoverHelper("ne");
+  return (
+    <th key={props.person.id} valign="top">
+      <div className="person" {...pPopover.elementProps}>
+        {props.person.name}
+      </div>
+      <Popover {...pPopover.PopoverProps}>
+        <EditPerson person={props.person} send={props.send} />
+      </Popover>
+    </th>
+  );
+}
+
+function EditPerson(props) {
+  const qDelete = utils.ConfirmHelper({
+    title: "Delete this person?",
+    text: props.person.name,
+    fun: () => {
+      props.send({
+        op: "deleteperson",
+        id: props.person.id,
+      });
+    },
+  });
+  return (
+    <div>
+      <div>Name: {props.person.name}</div>
+      <div>
+        <Button {...qDelete.elementProps}>Delete</Button>
+        {qDelete.dialog}
+      </div>
+    </div>
+  );
+}
+
 function Question(props) {
+  const qPopover = utils.PopoverHelper("nw");
   return [
     <tr key={props.question.id}>
       <td colSpan={props.numberOfColumns} className="question">
-        {props.question.title}
+        <div {...qPopover.elementProps}>{props.question.title}</div>
+        <Popover {...qPopover.PopoverProps}>
+          <EditQuestion question={props.question} send={props.send} />
+        </Popover>
       </td>
     </tr>,
     ...props.question.options.map((option) => (
@@ -136,14 +174,42 @@ function Question(props) {
   ];
 }
 
+function EditQuestion(props) {
+  const qDelete = utils.ConfirmHelper({
+    title: "Delete this question?",
+    text: props.question.title,
+    fun: () => {
+      props.send({
+        op: "deletequestion",
+        id: props.question.id,
+      });
+    },
+  });
+  return (
+    <div>
+      <div>Title: {props.question.title}</div>
+      <div>
+        <Button {...qDelete.elementProps}>Delete</Button>
+        {qDelete.dialog}
+      </div>
+    </div>
+  );
+}
+
 function OptionRow(props) {
   const { option, people, send } = props;
   const votingDone = optionHasAllVotes(option, people);
   const result = votingDone ? calculateResult(option, people).toFixed(2) : "";
+  const oPopover = utils.PopoverHelper("nw");
   return (
     <tr key={option.id}>
       <td></td>
-      <td className="option"> {option.title}</td>
+      <td className="option">
+        <div {...oPopover.elementProps}>{option.title}</div>
+        <Popover {...oPopover.PopoverProps}>
+          <EditOption option={option} send={send} />
+        </Popover>
+      </td>
       <td className="result">{result}</td>
       {people.map((person) => (
         <VoteCell
@@ -156,6 +222,29 @@ function OptionRow(props) {
       ))}
       <td></td>
     </tr>
+  );
+}
+
+function EditOption(props) {
+  const qDelete = utils.ConfirmHelper({
+    title: "Delete this option?",
+    text: props.option.title,
+    fun: () => {
+      props.send({
+        op: "deleteoption",
+        id: props.option.id,
+        questionid: props.option.questionid,
+      });
+    },
+  });
+  return (
+    <div>
+      <div>Title: {props.option.title}</div>
+      <div>
+        <Button {...qDelete.elementProps}>Delete</Button>
+        {qDelete.dialog}
+      </div>
+    </div>
   );
 }
 
@@ -187,13 +276,13 @@ function VoteCell(props) {
   const vote = option.votes[person.id];
   const isCast = Number.isInteger(vote);
   const show = votingDone ? vote : isCast ? "✓" : "✧";
-  const { elementProps, PopoverProps } = utils.PopoverHelper("ne");
+  const votePopover = utils.PopoverHelper("ne");
   return (
     <td key={person.id}>
-      <div className="vote" {...elementProps}>
+      <div className="vote" {...votePopover.elementProps}>
         {show}
       </div>
-      <Popover {...PopoverProps}>
+      <Popover {...votePopover.PopoverProps}>
         <Button
           onClick={() =>
             props.send({
