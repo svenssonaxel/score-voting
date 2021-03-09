@@ -42,7 +42,7 @@ function Voting(props) {
       <div>
         <table>
           <colgroup>
-            <col width="30em" />
+            <col />
             <col />
             <col />
             {props.people.map((person) => (
@@ -57,7 +57,7 @@ function Voting(props) {
               <th valign="top">
                 <div className="options">Options</div>
               </th>
-              <th>
+              <th valign="top">
                 <div className="results">Results</div>
               </th>
               {props.people.map((person) => (
@@ -144,7 +144,7 @@ function OptionRow(props) {
     <tr key={option.id}>
       <td></td>
       <td className="option"> {option.title}</td>
-      <td>{result}</td>
+      <td className="result">{result}</td>
       {people.map((person) => (
         <VoteCell
           key={person.id}
