@@ -2,7 +2,7 @@ import "./App.css";
 import React from "react";
 import reduce from "./reduce.js";
 import * as utils from "./utils.js";
-import { Fab, Tooltip } from "@material-ui/core";
+import { Button, Fab, Tooltip, Popover } from "@material-ui/core";
 import { Add } from "@material-ui/icons";
 
 class App extends React.Component {
@@ -187,21 +187,27 @@ function VoteCell(props) {
   const vote = option.votes[person.id];
   const isCast = Number.isInteger(vote);
   const show = votingDone ? vote : isCast ? "✓" : "✧";
+  const { elementProps, PopoverProps } = utils.PopoverHelper("ne");
   return (
-    <td
-      className="vote"
-      key={person.id}
-      onClick={() =>
-        props.send({
-          op: "vote",
-          questionid: option.questionid,
-          optionid: option.id,
-          personid: person.id,
-          value: 1 + (option.votes[person.id] || 0),
-        })
-      }
-    >
-      {show}
+    <td key={person.id}>
+      <div className="vote" {...elementProps}>
+        {show}
+      </div>
+      <Popover {...PopoverProps}>
+        <Button
+          onClick={() =>
+            props.send({
+              op: "vote",
+              questionid: option.questionid,
+              optionid: option.id,
+              personid: person.id,
+              value: 1 + (option.votes[person.id] || 0),
+            })
+          }
+        >
+          inc
+        </Button>
+      </Popover>
     </td>
   );
 }
