@@ -8,7 +8,7 @@ import {
   DialogTitle,
   Paper,
 } from "@material-ui/core";
-//import Draggable from "react-draggable";
+import Draggable from "react-draggable";
 
 export function rndId(entropy = 32) {
   const chars = "EHJKRWXY79"; // Uppercase letters and numbers except those that are possible to confuse when reading (A4 B8 G6 I1L O0Q S5 UV Z2) or listening (BDPT3 CZ FS MN).
@@ -77,12 +77,12 @@ export function PopoverHelper(corner) {
 
 function PaperComponent(props) {
   return (
-    //    <Draggable
-    //      handle="#draggable-dialog-title"
-    //      cancel={'[class*="MuiDialogContent-root"]'}
-    //    >
-    <Paper {...props} />
-    //    </Draggable>
+    <Draggable
+      handle="#draggable-dialog-title"
+      cancel={'[class*="MuiDialogContent-root"]'}
+    >
+      <Paper {...props} />
+    </Draggable>
   );
 }
 
