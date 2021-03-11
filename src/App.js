@@ -36,9 +36,17 @@ class App extends React.Component {
 
 function Voting({ people, title, send, questions }) {
   const numberOfColumns = people.length + 4;
+  const popover = PopoverHelper("n");
   return (
     <div>
-      <h1>{title}</h1>
+      <h1 {...popover.elementProps}>{title}</h1>
+      <Popover {...popover.PopoverProps}>
+        <EditDocument
+          object={{ title }}
+          onClose={popover.onClose}
+          send={send}
+        />
+      </Popover>
       <div>
         <table>
           <thead>
@@ -123,6 +131,26 @@ class Editor extends React.Component {
         this.props.send({ ...updateWith, ...obj });
       }
     });
+  }
+}
+
+class EditDocument extends Editor {
+  constructor(props) {
+    super(props, { op: "updatedocument" }, ["title"]);
+  }
+  render() {
+    const { title } = this.state;
+    return (
+      <div className="editor">
+        <div>
+          Title:
+          <Input
+            value={title}
+            onChange={(e) => this.setState({ title: e.target.value })}
+          />
+        </div>
+      </div>
+    );
   }
 }
 

@@ -14,6 +14,7 @@ const reductions = {
     ret = reduce(ret, { op: "createquestion" });
     return ret;
   },
+  updatedocument: (state, msg) => _.pick(msg, ["title"]),
 
   createperson: (state, msg) => ({
     people: [
