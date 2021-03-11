@@ -23,17 +23,52 @@
   text-align: left;
 }
 
-.result {
+th.result div,
+th.person div {
+  margin: auto;
+}
+
+.result,
+.vote {
   text-align: right;
 }
 
-.questions,
-.options,
-.results,
-.person {
+th.question div,
+th.option div,
+th.result div,
+th.person div {
   writing-mode: vertical-rl;
 }
 
-.person {
+th.person {
   font-weight: normal;
+}
+
+.question,
+.result {
+  font-weight: bold;
+}
+
+.evencol {
+  background-color: #ddd;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  vertical-align: top;
+  padding: 0.4vh 0.8vw;
+}
+
+th.question,
+th.option,
+th.result,
+th.person,
+td.option,
+td.result,
+td.vote {
+  border: 1px solid #888;
 }

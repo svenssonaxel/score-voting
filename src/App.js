@@ -41,29 +41,26 @@ function Voting({ people, title, send, questions }) {
       <h1>{title}</h1>
       <div>
         <table>
-          <colgroup>
-            <col />
-            <col />
-            <col />
-            {people.map((person) => (
-              <col key={person.id} />
-            ))}
-          </colgroup>
           <thead>
             <tr>
-              <th valign="top">
-                <div className="questions">Questions</div>
+              <th className="question">
+                <div>Questions</div>
               </th>
-              <th valign="top">
-                <div className="options">Options</div>
+              <th className="option">
+                <div>Options</div>
               </th>
-              <th valign="top">
-                <div className="results">Results</div>
+              <th className="result">
+                <div>Results</div>
               </th>
-              {people.map((person) => (
-                <Person key={person.id} person={person} send={send} />
+              {people.map((person, index) => (
+                <Person
+                  key={person.id}
+                  person={person}
+                  send={send}
+                  className={`person ${index % 2 ? "oddcol" : "evencol"}`}
+                />
               ))}
-              <th valign="top">
+              <th className="createperson">
                 <AddButton
                   tooltip="Add person"
                   fun={() => send({ op: "createperson" })}
@@ -96,13 +93,11 @@ function Voting({ people, title, send, questions }) {
   );
 }
 
-function Person({ person, send }) {
+function Person({ person, send, ...otherProps }) {
   const popover = PopoverHelper("ne");
   return (
-    <th key={person.id} valign="top">
-      <div className="person" {...popover.elementProps}>
-        {person.name}
-      </div>
+    <th key={person.id} {...otherProps}>
+      <div {...popover.elementProps}>{person.name}</div>
       <Popover {...popover.PopoverProps}>
         <EditPerson object={person} onClose={popover.onClose} send={send} />
       </Popover>
@@ -183,7 +178,7 @@ function Question({ question, numberOfColumns, send, people }) {
   const popover = PopoverHelper("nw");
   return [
     <tr key={question.id}>
-      <td colSpan={numberOfColumns} className="question">
+      <td colSpan={numberOfColumns - 1} className="question">
         <div {...popover.elementProps}>{question.title}</div>
         <Popover {...popover.PopoverProps}>
           <EditQuestion
@@ -193,13 +188,14 @@ function Question({ question, numberOfColumns, send, people }) {
           />
         </Popover>
       </td>
+      <td></td>
     </tr>,
     ...question.options.map((option) => (
       <OptionRow key={option.id} option={option} people={people} send={send} />
     )),
     <tr key={"addoptionfor_" + question.id}>
       <td></td>
-      <td colSpan={numberOfColumns - 1} className="createoption">
+      <td colSpan={numberOfColumns - 2} className="createoption">
         <AddButton
           tooltip="Add option"
           fun={() =>
@@ -210,6 +206,7 @@ function Question({ question, numberOfColumns, send, people }) {
           }
         />
       </td>
+      <td></td>
     </tr>,
   ];
 }
@@ -263,8 +260,9 @@ function OptionRow({ option, people, send }) {
         </Popover>
       </td>
       <td className="result">{result}</td>
-      {people.map((person) => (
+      {people.map((person, index) => (
         <VoteCell
+          className={`vote ${index % 2 ? "oddcol" : "evencol"}`}
           key={person.id}
           option={option}
           person={person}
@@ -344,13 +342,13 @@ function calculateResult(option, people) {
   return votes / weight;
 }
 
-function VoteCell({ option, person, votingDone, send }) {
+function VoteCell({ option, person, votingDone, send, ...otherProps }) {
   const vote = option.votes[person.id];
   const isCast = Number.isInteger(vote);
   const show = votingDone ? vote : isCast ? "✓" : "✧";
   const popover = PopoverHelper("ne");
   return (
-    <td key={person.id}>
+    <td key={person.id} {...otherProps}>
       <div className="vote" {...popover.elementProps}>
         {show}
       </div>
