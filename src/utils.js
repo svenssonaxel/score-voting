@@ -25,6 +25,7 @@ export function rndId(entropy = 32) {
 
 export function PopoverHelper(corner) {
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const onCloseFunctions = [];
   const corners = {
     n: { vertical: "top", horizontal: "center" },
     ne: { vertical: "top", horizontal: "right" },
@@ -42,12 +43,20 @@ export function PopoverHelper(corner) {
     },
     PopoverProps: {
       open: Boolean(anchorEl),
-      onClose: () => setAnchorEl(null),
+      onClose: () => {
+        for (let fun of onCloseFunctions) {
+          fun();
+        }
+        setAnchorEl(null);
+      },
       anchorEl,
       anchorOrigin: corners[corner],
       transformOrigin: corners[corner],
       disableRestoreFocus: true,
       PaperProps: { elevation: 24 },
+    },
+    onClose(fun) {
+      onCloseFunctions.push(fun);
     },
   };
 }

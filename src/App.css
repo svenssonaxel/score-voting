@@ -1,15 +1,19 @@
 .App {
-  text-align: center;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .App,
 .editor {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: top;
   font-size: calc(10px + 2vmin);
+}
+
+.editor {
+  padding: 2vh 1vw;
 }
 
 .question,

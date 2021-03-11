@@ -25,6 +25,13 @@ const reductions = {
       },
     ],
   }),
+  updateperson: (state, msg) => ({
+    people: _.map(state.people, (person) =>
+      person.id === msg.id
+        ? { ...person, ..._.pick(msg, ["name", "weight"]) }
+        : person
+    ),
+  }),
   deleteperson: (state, msg) => ({
     people: _.filter(state.people, (person) => person.id !== msg.id),
     questions: _.map(state.questions, (question) => ({
@@ -52,6 +59,13 @@ const reductions = {
     ret = reduce(ret, { op: "createoption", questionid: id });
     return ret;
   },
+  updatequestion: (state, msg) => ({
+    questions: _.map(state.questions, (question) =>
+      question.id === msg.id
+        ? { ...question, ..._.pick(msg, ["title"]) }
+        : question
+    ),
+  }),
   deletequestion: (state, msg) => ({
     questions: _.filter(state.questions, (question) => question.id !== msg.id),
   }),
@@ -70,6 +84,20 @@ const reductions = {
                 votes: {},
               },
             ],
+          }
+        : question
+    ),
+  }),
+  updateoption: (state, msg) => ({
+    questions: _.map(state.questions, (question) =>
+      question.id === msg.questionid
+        ? {
+            ...question,
+            options: _.map(question.options, (option) =>
+              option.id === msg.id
+                ? { ...option, ..._.pick(msg, ["title"]) }
+                : option
+            ),
           }
         : question
     ),

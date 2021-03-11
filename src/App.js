@@ -2,7 +2,8 @@ import "./App.css";
 import React from "react";
 import reduce from "./reduce.js";
 import { rndId, PopoverHelper, AddButton, DeleteButton } from "./utils.js";
-import { Button, Popover } from "@material-ui/core";
+import { Popover, Slider, Input } from "@material-ui/core";
+import * as _ from "lodash";
 
 class App extends React.Component {
   constructor(props) {
@@ -96,48 +97,100 @@ function Voting({ people, title, send, questions }) {
 }
 
 function Person({ person, send }) {
-  const pPopover = PopoverHelper("ne");
+  const popover = PopoverHelper("ne");
   return (
     <th key={person.id} valign="top">
-      <div className="person" {...pPopover.elementProps}>
+      <div className="person" {...popover.elementProps}>
         {person.name}
       </div>
-      <Popover {...pPopover.PopoverProps}>
-        <EditPerson person={person} send={send} />
+      <Popover {...popover.PopoverProps}>
+        <EditPerson object={person} onClose={popover.onClose} send={send} />
       </Popover>
     </th>
   );
 }
 
-function EditPerson({ person, send }) {
-  return (
-    <div className="editor">
-      <div>Name: {person.name}</div>
-      <div>
-        <DeleteButton
-          title="Delete this person?"
-          text={person.name}
-          tooltip="Delete person"
-          fun={() => {
-            send({
-              op: "deleteperson",
-              id: person.id,
-            });
-          }}
-        />
+class Editor extends React.Component {
+  constructor(props, updateWith, fields = null) {
+    super(props);
+    this.state = _.cloneDeep(props.object);
+    if (fields) {
+      this.state = _.pick(this.state, fields);
+    }
+    this.props.onClose(() => {
+      let obj = {};
+      for (let attr in this.state) {
+        if (this.props.object[attr] !== this.state[attr]) {
+          obj[attr] = this.state[attr];
+        }
+      }
+      if (_.size(obj)) {
+        this.props.send({ ...updateWith, ...obj });
+      }
+    });
+  }
+}
+
+class EditPerson extends Editor {
+  constructor(props) {
+    super(props, { op: "updateperson", id: props.object.id }, [
+      "name",
+      "weight",
+    ]);
+  }
+  render() {
+    const { send } = this.props;
+    const { id } = this.props.object;
+    const { name, weight } = this.state;
+    return (
+      <div className="editor">
+        <div>
+          Name:
+          <Input
+            value={name}
+            onChange={(e) => this.setState({ name: e.target.value })}
+          />
+        </div>
+        <div>
+          Weight:
+          <Input
+            value={weight}
+            onChange={(e) =>
+              this.setState({ weight: Number.parseInt(e.target.value) })
+            }
+            inputProps={{ type: "number" }}
+          />
+        </div>
+        <div>
+          <DeleteButton
+            title="Delete this person?"
+            text={name}
+            tooltip="Delete person"
+            fun={() => {
+              send({
+                op: "deleteperson",
+                id,
+              });
+            }}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 function Question({ question, numberOfColumns, send, people }) {
-  const qPopover = PopoverHelper("nw");
+  const popover = PopoverHelper("nw");
   return [
     <tr key={question.id}>
       <td colSpan={numberOfColumns} className="question">
-        <div {...qPopover.elementProps}>{question.title}</div>
-        <Popover {...qPopover.PopoverProps}>
-          <EditQuestion question={question} send={send} />
+        <div {...popover.elementProps}>{question.title}</div>
+        <Popover {...popover.PopoverProps}>
+          <EditQuestion
+            object={question}
+            onClose={popover.onClose}
+            send={send}
+          />
         </Popover>
       </td>
     </tr>,
@@ -161,38 +214,52 @@ function Question({ question, numberOfColumns, send, people }) {
   ];
 }
 
-function EditQuestion({ question, send }) {
-  return (
-    <div className="editor">
-      <div>Title: {question.title}</div>
-      <div>
-        <DeleteButton
-          title="Delete this question?"
-          text={question.title}
-          tooltip="Delete question"
-          fun={() => {
-            send({
-              op: "deletequestion",
-              id: question.id,
-            });
-          }}
-        />
+class EditQuestion extends Editor {
+  constructor(props) {
+    super(props, { op: "updatequestion", id: props.object.id }, ["title"]);
+  }
+  render() {
+    const { send } = this.props;
+    const { id } = this.props.object;
+    const { title } = this.state;
+    return (
+      <div className="editor">
+        <div>
+          Title:
+          <Input
+            value={title}
+            onChange={(e) => this.setState({ title: e.target.value })}
+          />
+        </div>
+        <div>
+          <DeleteButton
+            title="Delete this question?"
+            text={title}
+            tooltip="Delete question"
+            fun={() => {
+              send({
+                op: "deletequestion",
+                id,
+              });
+            }}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 function OptionRow({ option, people, send }) {
   const votingDone = optionHasAllVotes(option, people);
   const result = votingDone ? calculateResult(option, people).toFixed(2) : "";
-  const oPopover = PopoverHelper("nw");
+  const popover = PopoverHelper("nw");
   return (
     <tr key={option.id}>
       <td></td>
       <td className="option">
-        <div {...oPopover.elementProps}>{option.title}</div>
-        <Popover {...oPopover.PopoverProps}>
-          <EditOption option={option} send={send} />
+        <div {...popover.elementProps}>{option.title}</div>
+        <Popover {...popover.PopoverProps}>
+          <EditOption object={option} onClose={popover.onClose} send={send} />
         </Popover>
       </td>
       <td className="result">{result}</td>
@@ -210,26 +277,48 @@ function OptionRow({ option, people, send }) {
   );
 }
 
-function EditOption({ option, send }) {
-  return (
-    <div className="editor">
-      <div>Title: {option.title}</div>
-      <div>
-        <DeleteButton
-          title="Delete this option?"
-          text={option.title}
-          tooltip="Delete option"
-          fun={() => {
-            send({
-              op: "deleteoption",
-              id: option.id,
-              questionid: option.questionid,
-            });
-          }}
-        />
+class EditOption extends Editor {
+  constructor(props) {
+    super(
+      props,
+      {
+        op: "updateoption",
+        id: props.object.id,
+        questionid: props.object.questionid,
+      },
+      ["title"]
+    );
+  }
+  render() {
+    const { send } = this.props;
+    const { id, questionid } = this.props.object;
+    const { title } = this.state;
+    return (
+      <div className="editor">
+        <div>
+          Title:
+          <Input
+            value={title}
+            onChange={(e) => this.setState({ title: e.target.value })}
+          />
+        </div>
+        <div>
+          <DeleteButton
+            title="Delete this option?"
+            text={title}
+            tooltip="Delete option"
+            fun={() => {
+              send({
+                op: "deleteoption",
+                id,
+                questionid,
+              });
+            }}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 function optionHasAllVotes(option, people) {
@@ -259,38 +348,91 @@ function VoteCell({ option, person, votingDone, send }) {
   const vote = option.votes[person.id];
   const isCast = Number.isInteger(vote);
   const show = votingDone ? vote : isCast ? "✓" : "✧";
-  const votePopover = PopoverHelper("ne");
+  const popover = PopoverHelper("ne");
   return (
     <td key={person.id}>
-      <div className="vote" {...votePopover.elementProps}>
+      <div className="vote" {...popover.elementProps}>
         {show}
       </div>
-      <Popover {...votePopover.PopoverProps}>
-        <VoteEdit option={option} person={person} send={send} />
+      <Popover {...popover.PopoverProps}>
+        <EditVote
+          object={{ value: option.votes[person.id] }}
+          option={option}
+          personId={person.id}
+          onClose={popover.onClose}
+          send={send}
+        />
       </Popover>
     </td>
   );
 }
 
-function VoteEdit({ option, person, send }) {
-  return (
-    <div class="editor">
-      <div>Option: {option.title}</div>
-      <Button
-        onClick={() =>
-          send({
-            op: "vote",
-            questionid: option.questionid,
-            optionid: option.id,
-            personid: person.id,
-            value: 1 + (option.votes[person.id] || 0),
-          })
-        }
-      >
-        inc
-      </Button>
-    </div>
-  );
+class EditVote extends Editor {
+  constructor(props) {
+    super(
+      props,
+      {
+        op: "vote",
+        questionid: props.option.questionid,
+        optionid: props.option.id,
+        personid: props.personId,
+      },
+      ["value"]
+    );
+  }
+  interpretVote(v) {
+    if ("" + v === "" + Number.parseInt(v)) {
+      v = Number.parseInt(v);
+    }
+    if (Number.isInteger(v)) {
+      if (v < -100) {
+        v = -100;
+      }
+      if (100 < v) {
+        v = 100;
+      }
+    } else {
+      v = null;
+    }
+    return v;
+  }
+  updateVote(vote) {
+    this.setState({ value: this.interpretVote(vote) });
+  }
+  render() {
+    const { option } = this.props;
+    const { value } = this.state;
+    return (
+      <div className="editor">
+        <div>Option: {option.title}</div>
+        <div>
+          Vote:{" "}
+          <Slider
+            value={Number.isInteger(value) ? value : 0}
+            onChange={(e, newValue) => this.updateVote(newValue)}
+            marks={[
+              //            { label: "Strongly disagree", value: -100 },
+              { label: "Neutral", value: 0 },
+              //          { label: "Strongly agree", value: 100 },
+            ]}
+            min={-100}
+            max={100}
+          />
+          <Input
+            value={value === null || value === undefined ? "" : value}
+            margin="dense"
+            onChange={(e) => this.updateVote(e.target.value)}
+            inputProps={{
+              step: 1,
+              min: -100,
+              max: 100,
+              type: "number",
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 }
 
 export default App;
