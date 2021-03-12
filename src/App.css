@@ -55,12 +55,20 @@ th.person {
 
 table {
   border-collapse: collapse;
+  margin-left: 4vw;
 }
 
 th,
 td {
   vertical-align: top;
   padding: 0.4vh 0.8vw;
+}
+th.createperson {
+  padding: 0 0.8vw;
+}
+td.createquestion,
+td.createoption {
+  padding: 0.4vh 0;
 }
 
 th.question,
