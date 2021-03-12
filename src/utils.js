@@ -108,9 +108,9 @@ function ConfirmHelper({ title, text, fun }) {
   };
 }
 
-export function AddButton({ tooltip, fun }) {
+export function AddButton({ tooltip, tooltipPlacement = "bottom", fun }) {
   return (
-    <Tooltip title={tooltip}>
+    <Tooltip title={tooltip} placement={tooltipPlacement}>
       <Fab color="primary" size="small" onClick={fun}>
         <Add />
       </Fab>

@@ -2,7 +2,7 @@ import "./App.css";
 import React from "react";
 import reduce from "./reduce.js";
 import { rndId, PopoverHelper, AddButton, DeleteButton } from "./utils.js";
-import { Popover, Slider, Input } from "@material-ui/core";
+import { Popover, Slider, Input, Tooltip } from "@material-ui/core";
 import * as _ from "lodash";
 
 class App extends React.Component {
@@ -25,6 +25,7 @@ class App extends React.Component {
         <Voting
           id={this.state.id}
           title={this.state.title}
+          description={this.state.description}
           questions={this.state.questions}
           people={this.state.people}
           send={(msg) => this.send(msg)}
@@ -34,15 +35,17 @@ class App extends React.Component {
   }
 }
 
-function Voting({ people, title, send, questions }) {
+function Voting({ people, title, description, send, questions }) {
   const numberOfColumns = people.length + 4;
   const popover = PopoverHelper("n");
   return (
     <div>
-      <h1 {...popover.elementProps}>{title}</h1>
+      <Tooltip title={description}>
+        <h1 {...popover.elementProps}>{title}</h1>
+      </Tooltip>
       <Popover {...popover.PopoverProps}>
         <EditDocument
-          object={{ title }}
+          object={{ title, description }}
           onClose={popover.onClose}
           send={send}
         />
@@ -90,6 +93,7 @@ function Voting({ people, title, send, questions }) {
               <td colSpan={numberOfColumns} className="createquestion">
                 <AddButton
                   tooltip="Add question"
+                  tooltipPlacement="right"
                   fun={() => send({ op: "createquestion" })}
                 />
               </td>
@@ -136,10 +140,10 @@ class Editor extends React.Component {
 
 class EditDocument extends Editor {
   constructor(props) {
-    super(props, { op: "updatedocument" }, ["title"]);
+    super(props, { op: "updatedocument" }, ["title", "description"]);
   }
   render() {
-    const { title } = this.state;
+    const { title, description } = this.state;
     return (
       <div className="editor">
         <div>
@@ -147,6 +151,14 @@ class EditDocument extends Editor {
           <Input
             value={title}
             onChange={(e) => this.setState({ title: e.target.value })}
+          />
+        </div>
+        <div>
+          Description:
+          <Input
+            multiline
+            value={description}
+            onChange={(e) => this.setState({ description: e.target.value })}
           />
         </div>
       </div>
@@ -207,7 +219,11 @@ function Question({ question, numberOfColumns, send, people }) {
   return [
     <tr key={question.id}>
       <td colSpan={numberOfColumns - 1} className="question">
-        <div {...popover.elementProps}>{question.title}</div>
+        <div {...popover.elementProps}>
+          <Tooltip title={question.description} placement="right-start">
+            <span>{question.title}</span>
+          </Tooltip>
+        </div>
         <Popover {...popover.PopoverProps}>
           <EditQuestion
             object={question}
@@ -226,6 +242,7 @@ function Question({ question, numberOfColumns, send, people }) {
       <td colSpan={numberOfColumns - 2} className="createoption">
         <AddButton
           tooltip="Add option"
+          tooltipPlacement="right"
           fun={() =>
             send({
               op: "createoption",
@@ -241,12 +258,15 @@ function Question({ question, numberOfColumns, send, people }) {
 
 class EditQuestion extends Editor {
   constructor(props) {
-    super(props, { op: "updatequestion", id: props.object.id }, ["title"]);
+    super(props, { op: "updatequestion", id: props.object.id }, [
+      "title",
+      "description",
+    ]);
   }
   render() {
     const { send } = this.props;
     const { id } = this.props.object;
-    const { title } = this.state;
+    const { title, description } = this.state;
     return (
       <div className="editor">
         <div>
@@ -254,6 +274,14 @@ class EditQuestion extends Editor {
           <Input
             value={title}
             onChange={(e) => this.setState({ title: e.target.value })}
+          />
+        </div>{" "}
+        <div>
+          Description:
+          <Input
+            multiline
+            value={description}
+            onChange={(e) => this.setState({ description: e.target.value })}
           />
         </div>
         <div>
@@ -282,7 +310,9 @@ function OptionRow({ option, people, send }) {
     <tr key={option.id}>
       <td></td>
       <td className="option">
-        <div {...popover.elementProps}>{option.title}</div>
+        <Tooltip title={option.description} placement="right-start">
+          <div {...popover.elementProps}>{option.title}</div>
+        </Tooltip>
         <Popover {...popover.PopoverProps}>
           <EditOption object={option} onClose={popover.onClose} send={send} />
         </Popover>
@@ -312,13 +342,13 @@ class EditOption extends Editor {
         id: props.object.id,
         questionid: props.object.questionid,
       },
-      ["title"]
+      ["title", "description"]
     );
   }
   render() {
     const { send } = this.props;
     const { id, questionid } = this.props.object;
-    const { title } = this.state;
+    const { title, description } = this.state;
     return (
       <div className="editor">
         <div>
@@ -326,6 +356,14 @@ class EditOption extends Editor {
           <Input
             value={title}
             onChange={(e) => this.setState({ title: e.target.value })}
+          />
+        </div>
+        <div>
+          Description:
+          <Input
+            multiline
+            value={description}
+            onChange={(e) => this.setState({ description: e.target.value })}
           />
         </div>
         <div>

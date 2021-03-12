@@ -6,6 +6,7 @@ const reductions = {
     let ret = {
       id: msg.id,
       title: "Title for score voting",
+      description: "",
       questions: [],
       people: [],
     };
@@ -14,7 +15,7 @@ const reductions = {
     ret = reduce(ret, { op: "createquestion" });
     return ret;
   },
-  updatedocument: (state, msg) => _.pick(msg, ["title"]),
+  updatedocument: (state, msg) => _.pick(msg, ["title", "description"]),
 
   createperson: (state, msg) => ({
     people: [
@@ -52,6 +53,7 @@ const reductions = {
         {
           id,
           title: msg.title || "Question " + (state.questions.length + 1),
+          description: msg.description || "",
           options: [],
         },
       ],
@@ -63,7 +65,7 @@ const reductions = {
   updatequestion: (state, msg) => ({
     questions: _.map(state.questions, (question) =>
       question.id === msg.id
-        ? { ...question, ..._.pick(msg, ["title"]) }
+        ? { ...question, ..._.pick(msg, ["title", "description"]) }
         : question
     ),
   }),
@@ -82,6 +84,7 @@ const reductions = {
                 id: rndId(),
                 questionid: msg.questionid,
                 title: msg.title || "Option " + (question.options.length + 1),
+                description: msg.description || "",
                 votes: {},
               },
             ],
@@ -96,7 +99,7 @@ const reductions = {
             ...question,
             options: _.map(question.options, (option) =>
               option.id === msg.id
-                ? { ...option, ..._.pick(msg, ["title"]) }
+                ? { ...option, ..._.pick(msg, ["title", "description"]) }
                 : option
             ),
           }

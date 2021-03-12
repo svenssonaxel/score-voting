@@ -72,3 +72,19 @@ td.result,
 td.vote {
   border: 1px solid #888;
 }
+
+.MuiTooltip-tooltipPlacementLeft,
+.MuiTooltip-tooltipPlacementRight {
+  margin-left: 5px !important;
+  margin-right: 5px !important;
+}
+
+.MuiTooltip-tooltipPlacementTop,
+.MuiTooltip-tooltipPlacementBottom {
+  margin-top: 5px !important;
+  margin-bottom: 5px !important;
+}
+
+.MuiTooltip-tooltip {
+  white-space: pre-wrap;
+}
