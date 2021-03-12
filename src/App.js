@@ -451,21 +451,9 @@ class EditVote extends Editor {
     const { option } = this.props;
     const { value } = this.state;
     return (
-      <div className="editor">
-        <div>Option: {option.title}</div>
-        <div>
-          Vote:{" "}
-          <Slider
-            value={Number.isInteger(value) ? value : 0}
-            onChange={(e, newValue) => this.updateVote(newValue)}
-            marks={[
-              //            { label: "Strongly disagree", value: -100 },
-              { label: "Neutral", value: 0 },
-              //          { label: "Strongly agree", value: 100 },
-            ]}
-            min={-100}
-            max={100}
-          />
+      <div className="editor voteRoot">
+        <div>Vote for option: {option.title}</div>
+        <div className="voteInput">
           <Input
             value={value === null || value === undefined ? "" : value}
             margin="dense"
@@ -476,6 +464,24 @@ class EditVote extends Editor {
               max: 100,
               type: "number",
             }}
+            classes={{ input: "voteInputbox" }}
+          />
+        </div>
+        <div className="voteSlider">
+          <Slider
+            value={Number.isInteger(value) ? value : 0}
+            onChange={(e, newValue) => this.updateVote(newValue)}
+            marks={[
+              { label: "Strongly disagree", value: -100 },
+              { label: "Disagree", value: -50 },
+              { label: "Neutral", value: 0 },
+              { label: "Agree", value: 50 },
+              { label: "Strongly agree", value: 100 },
+            ]}
+            min={-100}
+            max={100}
+            track={false}
+            classes={{ markLabel: "voteMark" }}
           />
         </div>
       </div>

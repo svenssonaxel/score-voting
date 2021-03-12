@@ -88,3 +88,24 @@ td.vote {
 .MuiTooltip-tooltip {
   white-space: pre-wrap;
 }
+
+.voteRoot {
+  font-size: calc(8px + 1vmin);
+  min-width: calc(5ex+max(20vw, 20ex));
+}
+.voteInput {
+  margin-top: 2ex;
+}
+.voteInputbox {
+  text-align: right;
+  width: 4em !important;
+}
+.voteSlider {
+  min-height: 10em;
+  width: calc(max(20vw, 20ex));
+  padding: 0 2ex;
+}
+.voteMark {
+  writing-mode: vertical-rl;
+  font-size: calc(8px + 1vmin) !important;
+}
