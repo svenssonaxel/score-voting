@@ -225,7 +225,7 @@ function Question({ question, numberOfColumns, send, people }) {
       <td></td>
       <td colSpan={numberOfColumns - 2} className="createoption">
         <AddButton
-          tooltip="Add option"
+          tooltip={`Add option to question "${question.title}"`}
           tooltipPlacement="right"
           fun={() =>
             send({
