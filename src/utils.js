@@ -12,6 +12,7 @@ import {
 } from "@material-ui/core";
 import Draggable from "react-draggable";
 import { Add, Delete } from "@material-ui/icons";
+import * as _ from "lodash";
 
 export function rndId(entropy = 32) {
   const chars = "EHJKRWXY79"; // Uppercase letters and numbers except those that are possible to confuse when reading (A4 B8 G6 I1L O0Q S5 UV Z2) or listening (BDPT3 CZ FS MN).
@@ -134,4 +135,25 @@ export function DeleteButton({ title, text, tooltip, fun }) {
       {confirmDelete.dialog}
     </div>
   );
+}
+
+export class Editor extends React.Component {
+  constructor(props, updateWith, fields = null) {
+    super(props);
+    this.state = _.cloneDeep(props.object);
+    if (fields) {
+      this.state = _.pick(this.state, fields);
+    }
+    this.props.onClose(() => {
+      let obj = {};
+      for (let attr in this.state) {
+        if (this.props.object[attr] !== this.state[attr]) {
+          obj[attr] = this.state[attr];
+        }
+      }
+      if (_.size(obj)) {
+        this.props.send({ ...updateWith, ...obj });
+      }
+    });
+  }
 }

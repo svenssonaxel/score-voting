@@ -1,9 +1,14 @@
 import "./App.css";
 import React from "react";
 import reduce from "./reduce.js";
-import { rndId, PopoverHelper, AddButton, DeleteButton } from "./utils.js";
+import {
+  rndId,
+  PopoverHelper,
+  AddButton,
+  DeleteButton,
+  Editor,
+} from "./utils.js";
 import { Popover, Slider, Input, Tooltip } from "@material-ui/core";
-import * as _ from "lodash";
 
 class App extends React.Component {
   constructor(props) {
@@ -105,39 +110,6 @@ function Voting({ people, title, description, send, questions }) {
   );
 }
 
-function Person({ person, send, ...otherProps }) {
-  const popover = PopoverHelper("ne");
-  return (
-    <th key={person.id} {...otherProps}>
-      <div {...popover.elementProps}>{person.name}</div>
-      <Popover {...popover.PopoverProps}>
-        <EditPerson object={person} onClose={popover.onClose} send={send} />
-      </Popover>
-    </th>
-  );
-}
-
-class Editor extends React.Component {
-  constructor(props, updateWith, fields = null) {
-    super(props);
-    this.state = _.cloneDeep(props.object);
-    if (fields) {
-      this.state = _.pick(this.state, fields);
-    }
-    this.props.onClose(() => {
-      let obj = {};
-      for (let attr in this.state) {
-        if (this.props.object[attr] !== this.state[attr]) {
-          obj[attr] = this.state[attr];
-        }
-      }
-      if (_.size(obj)) {
-        this.props.send({ ...updateWith, ...obj });
-      }
-    });
-  }
-}
-
 class EditDocument extends Editor {
   constructor(props) {
     super(props, { op: "updatedocument" }, ["title", "description"]);
@@ -164,6 +136,18 @@ class EditDocument extends Editor {
       </div>
     );
   }
+}
+
+function Person({ person, send, ...otherProps }) {
+  const popover = PopoverHelper("ne");
+  return (
+    <th key={person.id} {...otherProps}>
+      <div {...popover.elementProps}>{person.name}</div>
+      <Popover {...popover.PopoverProps}>
+        <EditPerson object={person} onClose={popover.onClose} send={send} />
+      </Popover>
+    </th>
+  );
 }
 
 class EditPerson extends Editor {
