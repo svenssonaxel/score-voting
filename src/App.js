@@ -1,44 +1,21 @@
-import "./App.css";
 import React from "react";
-import reduce from "./reduce.js";
-import {
-  rndId,
-  PopoverHelper,
-  AddButton,
-  DeleteButton,
-  Editor,
-} from "./utils.js";
+import { PopoverHelper, AddButton, DeleteButton, Editor } from "./utils.js";
 import { Popover, Slider, Input, Tooltip } from "@material-ui/core";
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-
-    // Poor man's router
-    const id = window.location.hash.slice(1).toUpperCase() || rndId(32);
-    window.location.hash = id;
-    this.state = reduce({}, { op: "createdocument", id });
-  }
-
-  send(msg) {
-    this.setState(reduce(this.state, msg));
-  }
-
-  render() {
-    return (
-      <div className="App">
-        <Voting
-          id={this.state.id}
-          title={this.state.title}
-          description={this.state.description}
-          questions={this.state.questions}
-          people={this.state.people}
-          send={(msg) => this.send(msg)}
-        />
-      </div>
-    );
-  }
-}
+const App = ({ document, send }) => {
+  return (
+    <div className="App">
+      <Voting
+        id={document.id}
+        title={document.title}
+        description={document.description}
+        questions={document.questions}
+        people={document.people}
+        send={send}
+      />
+    </div>
+  );
+};
 
 function Voting({ people, title, description, send, questions }) {
   const numberOfColumns = people.length + 4;
