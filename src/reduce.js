@@ -1,5 +1,4 @@
 const _ = require("lodash");
-const { rndId } = require("./utils.js");
 
 const reductions = {
   createdocument(state, msg) {
@@ -9,6 +8,7 @@ const reductions = {
       description: "",
       questions: [],
       people: [],
+      nextid: 1,
     };
     ret = reduce(ret, { op: "createperson" });
     ret = reduce(ret, { op: "createperson" });
@@ -21,11 +21,12 @@ const reductions = {
     people: [
       ...state.people,
       {
-        id: rndId(),
+        id: state.nextid,
         name: msg.name || "Person " + (state.people.length + 1),
         weight: msg.weight || 1,
       },
     ],
+    nextid: state.nextid + 1,
   }),
   updateperson: (state, msg) => ({
     people: _.map(state.people, (person) =>
@@ -46,7 +47,7 @@ const reductions = {
   }),
 
   createquestion(state, msg) {
-    const id = rndId();
+    const id = state.nextid;
     let ret = {
       questions: [
         ...state.questions,
@@ -57,6 +58,7 @@ const reductions = {
           options: [],
         },
       ],
+      nextid: state.nextid + 1,
     };
     ret = reduce(ret, { op: "createoption", questionid: id });
     ret = reduce(ret, { op: "createoption", questionid: id });
@@ -81,7 +83,7 @@ const reductions = {
             options: [
               ...question.options,
               {
-                id: rndId(),
+                id: state.nextid,
                 questionid: msg.questionid,
                 title: msg.title || "Option " + (question.options.length + 1),
                 description: msg.description || "",
@@ -91,6 +93,7 @@ const reductions = {
           }
         : question
     ),
+    nextid: state.nextid + 1,
   }),
   updateoption: (state, msg) => ({
     questions: _.map(state.questions, (question) =>
