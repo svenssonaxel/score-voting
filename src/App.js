@@ -2,7 +2,7 @@ import React from "react";
 import { PopoverHelper, AddButton, DeleteButton, Editor } from "./utils.js";
 import { Popover, Slider, Input, Tooltip } from "@material-ui/core";
 
-const App = ({ document, send }) => {
+const App = ({ document, send, ssr }) => {
   return (
     <div className="App">
       <Voting
@@ -12,12 +12,13 @@ const App = ({ document, send }) => {
         questions={document.questions}
         people={document.people}
         send={send}
+        ssr={ssr}
       />
     </div>
   );
 };
 
-function Voting({ people, title, description, send, questions }) {
+function Voting({ people, title, description, send, questions, ssr }) {
   const numberOfColumns = people.length + 4;
   const popover = PopoverHelper("n");
   return (
@@ -57,6 +58,7 @@ function Voting({ people, title, description, send, questions }) {
                 <AddButton
                   tooltip="Add person"
                   fun={() => send({ op: "createperson" })}
+                  ssr={ssr}
                 />
               </th>
             </tr>
@@ -69,6 +71,7 @@ function Voting({ people, title, description, send, questions }) {
                 numberOfColumns={numberOfColumns}
                 people={people}
                 send={send}
+                ssr={ssr}
               />
             ))}
             <tr>
@@ -77,6 +80,7 @@ function Voting({ people, title, description, send, questions }) {
                   tooltip="Add question"
                   tooltipPlacement="right"
                   fun={() => send({ op: "createquestion" })}
+                  ssr={ssr}
                 />
               </td>
             </tr>
@@ -175,7 +179,7 @@ class EditPerson extends Editor {
   }
 }
 
-function Question({ question, numberOfColumns, send, people }) {
+function Question({ question, numberOfColumns, send, people, ssr }) {
   const popover = PopoverHelper("nw");
   return [
     <tr key={question.id}>
@@ -210,6 +214,7 @@ function Question({ question, numberOfColumns, send, people }) {
               questionid: question.id,
             })
           }
+          ssr={ssr}
         />
       </td>
       <td></td>

@@ -109,7 +109,10 @@ function ConfirmHelper({ title, text, fun }) {
   };
 }
 
-export function AddButton({ tooltip, tooltipPlacement = "bottom", fun }) {
+export function AddButton({ tooltip, tooltipPlacement = "bottom", fun, ssr }) {
+  if (ssr) {
+    return null;
+  }
   return (
     <Tooltip title={tooltip} placement={tooltipPlacement}>
       <Fab color="primary" size="small" onClick={fun}>
