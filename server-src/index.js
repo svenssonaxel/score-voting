@@ -5,8 +5,8 @@ const express = require("express");
 const httpProxy = require("http-proxy");
 const http = require("axios");
 
-const reduce = require("../src/reduce.js").default;
 const renderApp = require("./renderApp.js").default;
+const mip = require("./mip.js");
 
 const PORT = process.env.PORT || 3006;
 const app = express();
@@ -26,7 +26,7 @@ async function getIndexFileContents() {
 }
 
 const appHandler = (propsFun) => async (req, res) => {
-  const props = propsFun(req);
+  const props = await propsFun(req);
   const app = renderApp(props);
   const template = await getIndexFileContents();
   return res.send(
@@ -34,25 +34,28 @@ const appHandler = (propsFun) => async (req, res) => {
   );
 };
 
-function getDocument(id) {
-  const document = reduce({}, { op: "createdocument", id });
-  const send = (msg) =>
-    console.log({ error: "Cannot send before hydration", msg });
-  return {
-    view: "voting",
-    document,
-    send,
-  };
+async function getModel(id) {
+  const document = await mip.getDocument(id);
+  return { view: "voting", document };
 }
+
+app.use(express.json());
 
 app.get(
   "/d/:id",
-  appHandler((req) => getDocument(req.params.id))
+  appHandler(async (req) => await getModel(req.params.id))
 );
 
-app.get("/modelfor/d/:id", (req, res) => {
-  const ret = getDocument(req.params.id);
+app.get("/modelfor/d/:id", async (req, res) => {
+  const ret = await getModel(req.params.id);
   return res.send(ret);
+});
+
+app.post("/send/d/:id", async (req, res) => {
+  const id = req.params.id;
+  const msg = req.body;
+  await mip.send(id, msg);
+  return res.send("ok");
 });
 
 if (prod) {
