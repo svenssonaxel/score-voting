@@ -24,6 +24,10 @@ export function rndId(entropy = 32) {
   return ret;
 }
 
+export function sleep(ms) {
+  return new Promise((resolve, reject) => setTimeout(resolve, ms));
+}
+
 export function PopoverHelper(corner) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const onCloseFunctions = [];

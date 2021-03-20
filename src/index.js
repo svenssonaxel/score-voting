@@ -9,16 +9,9 @@ async function main() {
   const path = window.location.pathname;
   const modelResponse = await http.get(`/modelfor${path}`);
   const model = modelResponse.data;
-  async function send(msg) {
-    const msgResponse = await http.post(`/send${path}`, msg);
-    const data = msgResponse.data;
-    if (data !== "ok") {
-      throw new Error(JSON.stringify(data));
-    }
-  }
   ReactDOM.hydrate(
     <React.StrictMode>
-      <App {...model} send={send} />
+      <App {...model} path={path} />
     </React.StrictMode>,
     document.getElementById("root")
   );

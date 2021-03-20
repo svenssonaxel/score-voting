@@ -10,6 +10,7 @@ const mip = require("./mip.js");
 
 const PORT = process.env.PORT || 3006;
 const app = express();
+const expressWs = require("express-ws")(app);
 
 const prod = process.env.NODE_ENV == "production";
 
@@ -53,9 +54,23 @@ app.get("/modelfor/d/:id", async (req, res) => {
 
 app.post("/send/d/:id", async (req, res) => {
   const id = req.params.id;
-  const msg = req.body;
-  await mip.send(id, msg);
+  const cmd = req.body;
+  await mip.send(id, cmd);
   return res.send("ok");
+});
+
+app.ws("/realtimecmdsfor/d/:id", async (ws, req) => {
+  const id = req.params.id;
+  const deliver = (cmd) => ws.send(JSON.stringify(cmd));
+  ws.on("close", (code, reason) => mip.off(id, deliver));
+  ws.on("error", (error) => ws.close());
+  ws.on("message", (data) => mip.on(id, deliver));
+  ws.on("open", () => mip.on(id, deliver));
+});
+
+app.get("/cmdsfor/d/:id/since/:revision", async (req, res) => {
+  const { id, revision } = req.params;
+  res.send(mip.cmdsSince(id, revision));
 });
 
 if (prod) {

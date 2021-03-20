@@ -1,9 +1,9 @@
 const _ = require("lodash");
 
 const reductions = {
-  createdocument(state, msg) {
+  createdocument(state, cmd) {
     let ret = {
-      id: msg.id,
+      id: cmd.id,
       title: "Title for score voting",
       description: "",
       questions: [],
@@ -15,46 +15,47 @@ const reductions = {
     ret = reduce(ret, { op: "createquestion" });
     return ret;
   },
-  updatedocument: (state, msg) => _.pick(msg, ["title", "description"]),
+  updatedocument: (state, cmd) => _.pick(cmd, ["title", "description"]),
 
-  createperson: (state, msg) => ({
+  createperson: (state, cmd) => ({
     people: [
       ...state.people,
       {
         id: state.nextid,
-        name: msg.name || "Person " + (state.people.length + 1),
-        weight: msg.weight || 1,
+        name: cmd.name || "Person " + (state.people.length + 1),
+        weight: cmd.weight || 1,
       },
     ],
     nextid: state.nextid + 1,
   }),
-  updateperson: (state, msg) => ({
+  updateperson: (state, cmd) => ({
     people: _.map(state.people, (person) =>
-      person.id === msg.id
-        ? { ...person, ..._.pick(msg, ["name", "weight"]) }
+      person.id === cmd.id
+        ? { ...person, ..._.pick(cmd, ["name", "weight"]) }
         : person
     ),
   }),
-  deleteperson: (state, msg) => ({
-    people: _.filter(state.people, (person) => person.id !== msg.id),
+  deleteperson: (state, cmd) => ({
+    people: _.filter(state.people, (person) => person.id !== cmd.id),
     questions: _.map(state.questions, (question) => ({
       ...question,
       options: _.map(question.options, (option) => ({
         ...option,
-        votes: _.omit(option.votes, msg.id),
+        votes: _.omit(option.votes, cmd.id),
       })),
     })),
   }),
 
-  createquestion(state, msg) {
+  createquestion(state, cmd) {
     const id = state.nextid;
     let ret = {
+      ...state,
       questions: [
         ...state.questions,
         {
           id,
-          title: msg.title || "Question " + (state.questions.length + 1),
-          description: msg.description || "",
+          title: cmd.title || "Question " + (state.questions.length + 1),
+          description: cmd.description || "",
           options: [],
         },
       ],
@@ -64,29 +65,29 @@ const reductions = {
     ret = reduce(ret, { op: "createoption", questionid: id });
     return ret;
   },
-  updatequestion: (state, msg) => ({
+  updatequestion: (state, cmd) => ({
     questions: _.map(state.questions, (question) =>
-      question.id === msg.id
-        ? { ...question, ..._.pick(msg, ["title", "description"]) }
+      question.id === cmd.id
+        ? { ...question, ..._.pick(cmd, ["title", "description"]) }
         : question
     ),
   }),
-  deletequestion: (state, msg) => ({
-    questions: _.filter(state.questions, (question) => question.id !== msg.id),
+  deletequestion: (state, cmd) => ({
+    questions: _.filter(state.questions, (question) => question.id !== cmd.id),
   }),
 
-  createoption: (state, msg) => ({
+  createoption: (state, cmd) => ({
     questions: _.map(state.questions, (question) =>
-      question.id === msg.questionid
+      question.id === cmd.questionid
         ? {
             ...question,
             options: [
               ...question.options,
               {
                 id: state.nextid,
-                questionid: msg.questionid,
-                title: msg.title || "Option " + (question.options.length + 1),
-                description: msg.description || "",
+                questionid: cmd.questionid,
+                title: cmd.title || "Option " + (question.options.length + 1),
+                description: cmd.description || "",
                 votes: {},
               },
             ],
@@ -95,44 +96,44 @@ const reductions = {
     ),
     nextid: state.nextid + 1,
   }),
-  updateoption: (state, msg) => ({
+  updateoption: (state, cmd) => ({
     questions: _.map(state.questions, (question) =>
-      question.id === msg.questionid
+      question.id === cmd.questionid
         ? {
             ...question,
             options: _.map(question.options, (option) =>
-              option.id === msg.id
-                ? { ...option, ..._.pick(msg, ["title", "description"]) }
+              option.id === cmd.id
+                ? { ...option, ..._.pick(cmd, ["title", "description"]) }
                 : option
             ),
           }
         : question
     ),
   }),
-  deleteoption: (state, msg) => ({
+  deleteoption: (state, cmd) => ({
     questions: _.map(state.questions, (question) =>
-      question.id === msg.questionid
+      question.id === cmd.questionid
         ? {
             ...question,
             options: _.filter(
               question.options,
-              (option) => option.id !== msg.id
+              (option) => option.id !== cmd.id
             ),
           }
         : question
     ),
   }),
 
-  vote: (state, msg) => ({
+  vote: (state, cmd) => ({
     questions: _.map(state.questions, (question) =>
-      question.id === msg.questionid
+      question.id === cmd.questionid
         ? {
             ...question,
             options: _.map(question.options, (option) =>
-              option.id === msg.optionid
+              option.id === cmd.optionid
                 ? {
                     ...option,
-                    votes: { ...option.votes, [msg.personid]: msg.value },
+                    votes: { ...option.votes, [cmd.personid]: cmd.value },
                   }
                 : option
             ),
@@ -142,6 +143,16 @@ const reductions = {
   }),
 };
 
-export default function reduce(state, msg) {
-  return { ...state, ...reductions[msg.op](state, msg) };
+export default function reduce(state, cmd) {
+  const oldrevision = state.revision || 0;
+  const cmd_index = cmd.cmd_index;
+  if (oldrevision !== cmd_index && !_.isUndefined(cmd_index)) {
+    throw Error("Attempting to apply out of sync");
+  }
+  const ret = {
+    ...state,
+    ...reductions[cmd.op](state, cmd),
+    revision: oldrevision + 1,
+  };
+  return ret;
 }

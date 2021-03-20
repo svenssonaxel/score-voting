@@ -1,22 +1,97 @@
 import React from "react";
 import { PopoverHelper, AddButton, DeleteButton, Editor } from "./utils.js";
 import { Popover, Slider, Input, Tooltip } from "@material-ui/core";
+import * as http from "axios";
+import * as _ from "lodash";
 
-const App = ({ document, send, ssr }) => {
-  return (
-    <div className="App">
-      <Voting
-        id={document.id}
-        title={document.title}
-        description={document.description}
-        questions={document.questions}
-        people={document.people}
-        send={send}
-        ssr={ssr}
-      />
-    </div>
-  );
-};
+import reduce from "./reduce.js";
+import { sleep } from "./utils.js";
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.setStateAsync = (arg) =>
+      new Promise((resolve, reject) => {
+        this.setState(arg, () => resolve());
+      });
+    const { path, ssr, ...state } = props;
+    this.state = state;
+    this.receiveCache = {};
+    if (!this.props.ssr) {
+      this.subscribe();
+    }
+  }
+
+  async subscribe() {
+    const uri = `${window.location.origin.replace(
+      /^http/,
+      "ws"
+    )}/realtimecmdsfor${this.props.path}`;
+    const ws = new WebSocket(uri);
+    let catchupLoop = true;
+    const retry = _.once(() => {
+      ws.close();
+      catchupLoop = false;
+      this.subscribe();
+    });
+    ws.onclose = () => retry();
+    ws.onerror = () => retry();
+    ws.onmessage = (event) => this.receive(JSON.parse(event.data));
+    ws.onopen = (event) => ws.send(JSON.stringify(true));
+    while (catchupLoop) {
+      const catchupResponse = await http.get(
+        `/cmdsfor${this.props.path}/since/${this.state.document.revision}`
+      );
+      const data = catchupResponse.data;
+      for (let cmd of data) {
+        await this.receive(cmd);
+      }
+      await sleep(5000);
+    }
+  }
+
+  async receive(cmd) {
+    const cmd_index = cmd.cmd_index;
+    if (this.state.document.revision <= cmd_index) {
+      this.receiveCache[cmd_index] = cmd;
+    }
+    while (this.state.document.revision in this.receiveCache) {
+      await this.setStateAsync({
+        document: reduce(
+          this.state.document,
+          this.receiveCache[this.state.document.revision]
+        ),
+      });
+      delete this.receiveCache[this.state.document.revision];
+    }
+  }
+
+  async send(cmd) {
+    const cmdResponse = await http.post(`/send${this.props.path}`, cmd);
+    const data = cmdResponse.data;
+    if (data !== "ok") {
+      throw new Error(JSON.stringify(data));
+    }
+  }
+
+  render() {
+    const { document } = this.state;
+    const { ssr } = this.props;
+    return (
+      <div className="App">
+        <Voting
+          id={document.id}
+          title={document.title}
+          description={document.description}
+          questions={document.questions}
+          people={document.people}
+          send={(cmd) => this.send(cmd)}
+          ssr={ssr}
+        />
+      </div>
+    );
+  }
+}
 
 function Voting({ people, title, description, send, questions, ssr }) {
   const numberOfColumns = people.length + 4;
