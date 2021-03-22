@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const util = require("util");
 const { promisify } = require("util");
 const express = require("express");
 const httpProxy = require("http-proxy");
@@ -42,24 +43,39 @@ async function getModel(id) {
 
 app.use(express.json());
 
+// We're using an old version of ExpressJS without built-in support for async error handling
+const handleAsyncErrors = (fun) => async (req, res, next) => {
+  try {
+    await fun(req, res);
+  } catch (error) {
+    next(error);
+  }
+};
+
 app.get(
   "/d/:id",
-  appHandler(async (req) => await getModel(req.params.id))
+  handleAsyncErrors(appHandler(async (req) => await getModel(req.params.id)))
 );
 
-app.get("/modelfor/d/:id", async (req, res) => {
-  const ret = await getModel(req.params.id);
-  return res.send(ret);
-});
+app.get(
+  "/modelfor/d/:id",
+  handleAsyncErrors(async (req, res) => {
+    const ret = await getModel(req.params.id);
+    return res.send(ret);
+  })
+);
 
-app.post("/send/d/:id", async (req, res) => {
-  const id = req.params.id;
-  const cmd = req.body;
-  await mip.send(id, cmd);
-  return res.send("ok");
-});
+app.post(
+  "/send/d/:id",
+  handleAsyncErrors(async (req, res) => {
+    const id = req.params.id;
+    const cmd = req.body;
+    await mip.send(id, cmd);
+    return res.send("ok");
+  })
+);
 
-app.ws("/realtimecmdsfor/d/:id", async (ws, req) => {
+app.ws("/realtimecmdsfor/d/:id", (ws, req) => {
   const id = req.params.id;
   const deliver = (cmd) => ws.send(JSON.stringify(cmd));
   ws.on("close", (code, reason) => mip.off(id, deliver));
@@ -68,19 +84,30 @@ app.ws("/realtimecmdsfor/d/:id", async (ws, req) => {
   ws.on("open", () => mip.on(id, deliver));
 });
 
-app.get("/cmdsfor/d/:id/since/:revision", async (req, res) => {
-  const { id, revision } = req.params;
-  res.send(mip.cmdsSince(id, revision));
-});
+app.get(
+  "/cmdsfor/d/:id/since/:revision",
+  handleAsyncErrors(async (req, res) => {
+    const { id, revision } = req.params;
+    res.send(mip.cmdsSince(id, revision));
+  })
+);
 
 if (prod) {
   app.use(express.static("./build"));
 } else {
   const proxyServer = httpProxy.createProxyServer();
-  app.all("/*", (req, res) =>
-    proxyServer.web(req, res, { target: "http://localhost:3000" })
+  proxyServer.webAsync = promisify(proxyServer.web);
+  app.all(
+    "/*",
+    handleAsyncErrors(async (req, res) => {
+      await proxyServer.webAsync(req, res, { target: "http://localhost:3000" });
+    })
   );
 }
+
+app.use(async (err, req, res, next) => {
+  console.error(util.inspect(err, { depth: null, colors: true }));
+});
 
 app.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
