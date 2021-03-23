@@ -109,6 +109,11 @@ app.use(async (err, req, res, next) => {
   console.error(util.inspect(err, { depth: null, colors: true }));
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
-});
+async function main() {
+  await mip.initialize();
+  app.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+  });
+}
+
+main();

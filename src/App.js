@@ -67,6 +67,9 @@ class App extends React.Component {
   }
 
   async send(cmd) {
+    if (!("cmd_index" in cmd)) {
+      cmd.cmd_index = this.state.document.revision;
+    }
     const cmdResponse = await http.post(`/send${this.props.path}`, cmd);
     const data = cmdResponse.data;
     if (data !== "ok") {
