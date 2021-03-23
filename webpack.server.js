@@ -16,7 +16,7 @@ module.exports = {
 
   target: "node",
 
-  externals: prod_vs_dev([], [nodeExternals()]),
+  externals: [nodeExternals()],
 
   output: {
     path: path.resolve(prod_vs_dev("server-build", "server-build-dev")),

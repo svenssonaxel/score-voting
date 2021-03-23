@@ -1,0 +1,44 @@
+#!/bin/bash
+set -e
+finish() { if [ $? -gt 0 ]; then echo-red FAILED; exit 1; fi; }
+trap finish EXIT
+
+if [ -t 1 ]; then
+    echo-green() { echo -ne "\e[32m"; echo -n "$@"; echo -e "\e[0m"; }
+    echo-red() { echo -ne "\e[31m"; echo -n "$@"; echo -e "\e[0m"; }
+else
+    echo-green() { echo "$@"; }
+    echo-red() { echo "$@"; }
+fi
+
+export NVMDIR="$PWD/.nvm"
+[ -d "$NVMDIR" ] || git clone https://github.com/nvm-sh/nvm.git "$NVMDIR"
+( cd "$NVMDIR"; git pull )
+set +e
+[ -s "$NVMDIR/nvm.sh" ] && \. "$NVMDIR/nvm.sh"
+set -e
+nvm install 
+nvm use
+
+function build () {
+    rm -rf node_modules/ build/ server-build/ dist/
+    npm install
+    npm run build-client
+    npm run build-server
+    mkdir dist/
+    cp -pr node_modules dist/
+    cp -pr build dist/frontend
+    cp -pr server-build dist/backend
+    cp -pr service.sh .nvmrc dist/
+    echo-green Finished building project to dist/
+}
+
+if [ -z "$1" ]; then
+    cat <<EOF
+
+Usage:
+  ./script build                        Do a project production build
+EOF
+else
+    "$@"
+fi

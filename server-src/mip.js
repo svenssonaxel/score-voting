@@ -9,8 +9,8 @@ let documents = {};
 const eventemitter = new EventEmitter();
 let db;
 
-mip.initialize = async function () {
-  db = await sqlite.open("./score-voting.db");
+mip.initialize = async function (dbfile) {
+  db = await sqlite.open(dbfile);
   await db.run(
     "CREATE TABLE IF NOT EXISTS cmds (documentid text, cmd_index int, cmd text, UNIQUE (documentid, cmd_index));"
   );

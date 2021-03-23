@@ -1,3 +1,6 @@
+require("core-js/stable");
+require("regenerator-runtime/runtime");
+
 const path = require("path");
 const fs = require("fs");
 const util = require("util");
@@ -9,16 +12,15 @@ const http = require("axios");
 const renderApp = require("./renderApp.js").default;
 const mip = require("./mip.js");
 
-const PORT = process.env.PORT || 3006;
+const prod = process.env.NODE_ENV == "production";
+const PORT = process.env.PORT || (prod ? 80 : 3006);
 const app = express();
 const expressWs = require("express-ws")(app);
-
-const prod = process.env.NODE_ENV == "production";
 
 async function getIndexFileContents() {
   if (prod) {
     const readFile = promisify(fs.readFile);
-    const indexFile = path.resolve("./build/index.html");
+    const indexFile = path.resolve("./frontend/index.html");
     const data = await readFile(indexFile, "utf8");
     return data;
   } else {
@@ -93,7 +95,7 @@ app.get(
 );
 
 if (prod) {
-  app.use(express.static("./build"));
+  app.use(express.static("./frontend"));
 } else {
   const proxyServer = httpProxy.createProxyServer();
   proxyServer.webAsync = promisify(proxyServer.web);
@@ -110,7 +112,9 @@ app.use(async (err, req, res, next) => {
 });
 
 async function main() {
-  await mip.initialize();
+  await mip.initialize(
+    prod ? "/var/local/score-voting/score-voting.db" : "./score-voting.db"
+  );
   app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
   });
