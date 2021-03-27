@@ -12,24 +12,27 @@ else
 fi
 
 export NVMDIR="$PWD/.nvm"
-[ -d "$NVMDIR" ] || git clone https://github.com/nvm-sh/nvm.git "$NVMDIR"
-( cd "$NVMDIR"; git pull )
-set +e
-[ -s "$NVMDIR/nvm.sh" ] && \. "$NVMDIR/nvm.sh"
-set -e
-nvm install 
-nvm use
+
+function nvm-init () {
+    [ -d "$NVMDIR" ] || git clone https://github.com/nvm-sh/nvm.git "$NVMDIR"
+    ( cd "$NVMDIR"; git pull )
+    set +e
+    [ -s "$NVMDIR/nvm.sh" ] && \. "$NVMDIR/nvm.sh"
+    set -e
+    nvm install
+    nvm use
+}
 
 function build () {
-    rm -rf node_modules/ build/ server-build/ dist/
+    rm -rf .nvm node_modules/ build/ server-build/ dist/
+    nvm-init
     npm install
     npm run build-client
     npm run build-server
     mkdir dist/
-    cp -pr node_modules dist/
+    cp -pr .nvm .nvmrc node_modules service.sh dist/
     cp -pr build dist/frontend
     cp -pr server-build dist/backend
-    cp -pr service.sh .nvmrc dist/
     echo-green Finished building project to dist/
 }
 
