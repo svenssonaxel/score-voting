@@ -9,7 +9,11 @@ set +e
 set -e
 nvm use
 
-mkdir -p /var/local/score-voting
+if [ -z "${SCORE_VOTING_DATA_DIR+x}" ]; then
+    mkdir -p /var/local/score-voting
+else
+    mkdir -p "${SCORE_VOTING_DATA_DIR}"
+fi
 
 export NODE_ENV=production
 node backend/index.js

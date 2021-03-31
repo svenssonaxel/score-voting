@@ -113,7 +113,10 @@ app.use(async (err, req, res, next) => {
 
 async function main() {
   await mip.initialize(
-    prod ? "/var/local/score-voting/score-voting.db" : "./score-voting.db"
+    `${
+      process.env.SCORE_VOTING_DATA_DIR ||
+      (prod ? "/var/local/score-voting" : ".")
+    }/score-voting.db`
   );
   app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
