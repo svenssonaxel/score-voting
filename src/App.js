@@ -1,6 +1,6 @@
 import React from "react";
 import { PopoverHelper, AddButton, DeleteButton, Editor } from "./utils.js";
-import { Popover, Slider, Input, Tooltip } from "@material-ui/core";
+import { Popover, Slider, Input, Tooltip, Button } from "@material-ui/core";
 import * as http from "axios";
 import * as _ from "lodash";
 
@@ -15,6 +15,11 @@ class App extends React.Component {
         this.setState(arg, () => resolve());
       });
     const { path, ssr, ...state } = props;
+    if (!props.ssr) {
+      let me = window.localStorage.getItem(`me${path}`);
+      me = JSON.parse(me);
+      state.me = me;
+    }
     this.state = state;
     this.receiveCache = {};
     if (!this.props.ssr) {
@@ -77,8 +82,13 @@ class App extends React.Component {
     }
   }
 
+  setMe(key) {
+    this.setState({ me: key });
+    window.localStorage.setItem(`me${this.props.path}`, JSON.stringify(key));
+  }
+
   render() {
-    const { document } = this.state;
+    const { document, me } = this.state;
     const { ssr } = this.props;
     return (
       <div className="App">
@@ -89,6 +99,8 @@ class App extends React.Component {
           questions={document.questions}
           people={document.people}
           send={(cmd) => this.send(cmd)}
+          setMe={(key) => this.setMe(key)}
+          me={me}
           ssr={ssr}
         />
       </div>
@@ -96,7 +108,16 @@ class App extends React.Component {
   }
 }
 
-function Voting({ people, title, description, send, questions, ssr }) {
+function Voting({
+  people,
+  title,
+  description,
+  send,
+  setMe,
+  me,
+  questions,
+  ssr,
+}) {
   const numberOfColumns = people.length + 4;
   const popover = PopoverHelper("n");
   return (
@@ -129,7 +150,9 @@ function Voting({ people, title, description, send, questions, ssr }) {
                   key={person.id}
                   person={person}
                   send={send}
-                  className={`person ${index % 2 ? "oddcol" : "evencol"}`}
+                  className={`person ${index % 2 ? "oddcol" : "evencol"} ${
+                    me === person.id ? "me" : ""
+                  }`}
                 />
               ))}
               <th className="createperson">
@@ -149,6 +172,8 @@ function Voting({ people, title, description, send, questions, ssr }) {
                 numberOfColumns={numberOfColumns}
                 people={people}
                 send={send}
+                setMe={setMe}
+                me={me}
                 ssr={ssr}
               />
             ))}
@@ -257,7 +282,7 @@ class EditPerson extends Editor {
   }
 }
 
-function Question({ question, numberOfColumns, send, people, ssr }) {
+function Question({ question, numberOfColumns, send, people, setMe, me, ssr }) {
   const popover = PopoverHelper("nw");
   return [
     <tr key={question.id}>
@@ -278,7 +303,14 @@ function Question({ question, numberOfColumns, send, people, ssr }) {
       <td></td>
     </tr>,
     ...question.options.map((option) => (
-      <OptionRow key={option.id} option={option} people={people} send={send} />
+      <OptionRow
+        key={option.id}
+        option={option}
+        people={people}
+        send={send}
+        setMe={setMe}
+        me={me}
+      />
     )),
     <tr key={"addoptionfor_" + question.id}>
       <td></td>
@@ -346,7 +378,7 @@ class EditQuestion extends Editor {
   }
 }
 
-function OptionRow({ option, people, send }) {
+function OptionRow({ option, people, send, setMe, me }) {
   const votingDone = optionHasAllVotes(option, people);
   const result = votingDone ? calculateResult(option, people).toFixed(2) : "";
   const popover = PopoverHelper("nw");
@@ -364,12 +396,16 @@ function OptionRow({ option, people, send }) {
       <td className="result">{result}</td>
       {people.map((person, index) => (
         <VoteCell
-          className={`vote ${index % 2 ? "oddcol" : "evencol"}`}
+          className={`vote ${index % 2 ? "oddcol" : "evencol"} ${
+            me === person.id ? "me" : ""
+          }`}
           key={person.id}
           option={option}
           person={person}
           votingDone={votingDone}
           send={send}
+          setMe={setMe}
+          me={me}
         />
       ))}
       <td></td>
@@ -452,25 +488,50 @@ function calculateResult(option, people) {
   return votes / weight;
 }
 
-function VoteCell({ option, person, votingDone, send, ...otherProps }) {
+function VoteCell({
+  option,
+  person,
+  votingDone,
+  send,
+  setMe,
+  me,
+  ...otherProps
+}) {
   const vote = option.votes[person.id];
   const isCast = Number.isInteger(vote);
-  const show = votingDone ? vote : isCast ? "✓" : "✧";
+  const thisIsMe = person.id === me;
+  let show = "__",
+    popoverContent;
+  if (votingDone || thisIsMe) {
+    show = vote || "__";
+  } else if (isCast) {
+    show = "▓";
+  }
   const popover = PopoverHelper("ne");
+  if (thisIsMe) {
+    popoverContent = (
+      <EditVote
+        object={{ value: option.votes[person.id] }}
+        option={option}
+        personId={person.id}
+        onClose={popover.onClose}
+        send={send}
+      />
+    );
+  } else {
+    popoverContent = <NotMe person={person} setMe={setMe} me={me} />;
+  }
   return (
     <td key={person.id} {...otherProps}>
-      <div className="vote" {...popover.elementProps}>
+      <div
+        className={`vote ${thisIsMe ? "me" : ""} ${
+          isCast ? "iscast" : "isnotcast"
+        }`}
+        {...popover.elementProps}
+      >
         {show}
       </div>
-      <Popover {...popover.PopoverProps}>
-        <EditVote
-          object={{ value: option.votes[person.id] }}
-          option={option}
-          personId={person.id}
-          onClose={popover.onClose}
-          send={send}
-        />
-      </Popover>
+      <Popover {...popover.PopoverProps}>{popoverContent}</Popover>
     </td>
   );
 }
@@ -544,6 +605,25 @@ class EditVote extends Editor {
             classes={{ markLabel: "voteMark" }}
           />
         </div>
+      </div>
+    );
+  }
+}
+
+function NotMe({ person, setMe, me }) {
+  const name = person.name;
+  if (person.id !== me) {
+    return (
+      <div className="editor">
+        <div>
+          You cannot vote as <b>{name}</b> unless you are <b>{name}</b>.
+        </div>
+        <div>
+          Are you <b>{name}</b>?
+        </div>
+        <Button color="primary" onClick={() => setMe(person.id)}>
+          Yes
+        </Button>
       </div>
     );
   }

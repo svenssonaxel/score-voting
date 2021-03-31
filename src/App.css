@@ -53,6 +53,10 @@ th.person {
   background-color: #ddd;
 }
 
+.me {
+  background-color: #ff9;
+}
+
 table {
   border-collapse: collapse;
   margin-left: 4vw;
