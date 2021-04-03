@@ -14,16 +14,22 @@ class App extends React.Component {
       new Promise((resolve, reject) => {
         this.setState(arg, () => resolve());
       });
-    const { path, ssr, ...state } = props;
-    if (!props.ssr) {
-      let me = window.localStorage.getItem(`me${path}`);
-      me = JSON.parse(me);
-      state.me = me;
-    }
-    this.state = state;
+    // In order to appease ReactDOM.hydrate, first render in server-side mode. This is updated in componentDidMount.
+    this.state = { ...props, me: null, ssr: true };
     this.receiveCache = {};
+  }
+
+  componentDidMount() {
+    // If running client-side
     if (!this.props.ssr) {
+      // Then subscribe to updates,
       this.subscribe();
+      this.setState({
+        // render subjectively,
+        me: JSON.parse(window.localStorage.getItem(`me${this.props.path}`)),
+        // and render in client-side mode
+        ssr: false,
+      });
     }
   }
 
@@ -88,8 +94,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { document, me } = this.state;
-    const { ssr } = this.props;
+    const { document, me, ssr } = this.state;
     return (
       <div className="App">
         <Voting
