@@ -1,11 +1,16 @@
 import React from "react";
-import { PopoverHelper, AddButton, DeleteButton, Editor } from "./utils.js";
+import {
+  PopoverHelper,
+  AddButton,
+  DeleteButton,
+  Editor,
+  sleep,
+} from "./utils.js";
 import { Popover, Slider, Input, Tooltip, Button } from "@material-ui/core";
 import * as http from "axios";
 import * as _ from "lodash";
 
 import reduce from "./reduce.js";
-import { sleep } from "./utils.js";
 import { Firstpage } from "./firstpage.js";
 
 class App extends React.Component {
