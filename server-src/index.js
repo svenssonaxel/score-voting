@@ -11,6 +11,7 @@ const http = require("axios");
 
 const renderApp = require("./renderApp.js").default;
 const mip = require("./mip.js");
+const utils = require("./utils.js");
 
 const prod = process.env.NODE_ENV == "production";
 const PORT = process.env.PORT || (prod ? 80 : 3006);
@@ -38,9 +39,13 @@ const appHandler = (propsFun) => async (req, res) => {
   );
 };
 
-async function getModel(id) {
+function getFirstpageModel() {
+  return { view: "firstpage", newDocumentPath: `/d/${utils.rndId()}` };
+}
+
+async function getDocumentModel(id) {
   const document = await mip.getDocument(id);
-  return { view: "voting", document };
+  return { view: "document", document };
 }
 
 app.use(express.json());
@@ -54,15 +59,28 @@ const handleAsyncErrors = (fun) => async (req, res, next) => {
   }
 };
 
+// Server-side rendered pages
+
+app.get(
+  "/",
+  appHandler(() => ({ view: "firstpage", newDocumentPath: null }))
+);
+
 app.get(
   "/d/:id",
-  handleAsyncErrors(appHandler(async (req) => await getModel(req.params.id)))
+  handleAsyncErrors(
+    appHandler(async (req) => await getDocumentModel(req.params.id))
+  )
 );
+
+// Models fetched by client-side scripts
+
+app.get("/modelfor/", (req, res) => res.send(getFirstpageModel()));
 
 app.get(
   "/modelfor/d/:id",
   handleAsyncErrors(async (req, res) => {
-    const ret = await getModel(req.params.id);
+    const ret = await getDocumentModel(req.params.id);
     return res.send(ret);
   })
 );

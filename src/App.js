@@ -6,6 +6,7 @@ import * as _ from "lodash";
 
 import reduce from "./reduce.js";
 import { sleep } from "./utils.js";
+import { Firstpage } from "./firstpage.js";
 
 class App extends React.Component {
   constructor(props) {
@@ -22,11 +23,15 @@ class App extends React.Component {
   componentDidMount() {
     // If running client-side
     if (!this.props.ssr) {
-      // Then subscribe to updates,
-      this.subscribe();
+      // Then subscribe to updates if applicable,
+      if (this.props.view === "document") {
+        this.subscribe();
+      }
       this.setState({
         // render subjectively,
-        me: JSON.parse(window.localStorage.getItem(`me${this.props.path}`)),
+        me: JSON.parse(
+          window.localStorage.getItem(`me${this.props.path}`) || "null"
+        ),
         // and render in client-side mode
         ssr: false,
       });
@@ -94,22 +99,33 @@ class App extends React.Component {
   }
 
   render() {
-    const { document, me, ssr } = this.state;
-    return (
-      <div className="App">
-        <Voting
-          id={document.id}
-          title={document.title}
-          description={document.description}
-          questions={document.questions}
-          people={document.people}
-          send={(cmd) => this.send(cmd)}
-          setMe={(key) => this.setMe(key)}
-          me={me}
-          ssr={ssr}
-        />
-      </div>
-    );
+    const { view } = this.props;
+    const { newDocumentPath, ssr } = this.state;
+    if (view === "firstpage") {
+      return (
+        <div className="App">
+          <Firstpage newDocumentPath={newDocumentPath} ssr={ssr} />
+        </div>
+      );
+    }
+    if (view === "document") {
+      const { document, me, ssr } = this.state;
+      return (
+        <div className="App">
+          <Voting
+            id={document.id}
+            title={document.title}
+            description={document.description}
+            questions={document.questions}
+            people={document.people}
+            send={(cmd) => this.send(cmd)}
+            setMe={(key) => this.setMe(key)}
+            me={me}
+            ssr={ssr}
+          />
+        </div>
+      );
+    }
   }
 }
 
