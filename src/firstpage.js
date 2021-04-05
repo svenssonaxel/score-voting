@@ -6,9 +6,10 @@ export function Firstpage({ newDocumentPath, ssr }) {
   if (!ssr && newDocumentPath) {
     createSection = (
       <div key="createsection">
-        To get started, click here:
+        To get started, click here:{" "}
         <Button
           color="primary"
+          variant="outlined"
           onClick={() => {
             window.location.pathname = newDocumentPath;
           }}

@@ -647,7 +647,11 @@ function NotMe({ person, setMe, me }) {
         <div>
           Are you <b>{name}</b>?
         </div>
-        <Button color="primary" onClick={() => setMe(person.id)}>
+        <Button
+          color="primary"
+          variant="outlined"
+          onClick={() => setMe(person.id)}
+        >
           Yes
         </Button>
       </div>

@@ -85,7 +85,12 @@ function ConfirmHelper({ title, text, fun }) {
           <DialogContentText>{text}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={() => setOpen(false)} color="primary">
+          <Button
+            autoFocus
+            onClick={() => setOpen(false)}
+            color="primary"
+            variant="outlined"
+          >
             Cancel
           </Button>
           <Button
@@ -94,6 +99,7 @@ function ConfirmHelper({ title, text, fun }) {
               fun();
             }}
             color="primary"
+            variant="outlined"
           >
             OK
           </Button>
