@@ -4,12 +4,35 @@
 
 .App,
 .editor {
-  text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: top;
+  margin-left: min(10vmin, 5em);
+  margin-right: min(10vmin, 5em);
+}
+
+.document {
+  text-align: center;
   font-size: calc(10px + 2vmin);
+  align-items: center;
+}
+
+.firstpage {
+  text-align: left;
+  font-size: calc(10px + 1vmin);
+  align-items: left;
+  max-width: 200mm;
+  margin: auto;
+}
+.firstpage figure {
+  margin: 3ex auto;
+}
+.firstpage figure img {
+  width: 100%;
+}
+.firstpage figcaption {
+  font-style: italic;
+  margin: 0 min(10vw, 20mm);
 }
 
 .editor {

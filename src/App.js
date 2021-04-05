@@ -108,7 +108,7 @@ class App extends React.Component {
     const { newDocumentPath, ssr } = this.state;
     if (view === "firstpage") {
       return (
-        <div className="App">
+        <div className={`App ${view}`}>
           <Firstpage newDocumentPath={newDocumentPath} ssr={ssr} />
         </div>
       );
@@ -116,7 +116,7 @@ class App extends React.Component {
     if (view === "document") {
       const { document, me, ssr } = this.state;
       return (
-        <div className="App">
+        <div className={`App ${view}`}>
           <Voting
             id={document.id}
             title={document.title}
