@@ -17,20 +17,20 @@
   align-items: center;
 }
 
-.firstpage {
+.frontpage {
   text-align: left;
   font-size: calc(10px + 1vmin);
   align-items: left;
   max-width: 200mm;
   margin: auto;
 }
-.firstpage figure {
+.frontpage figure {
   margin: 3ex auto;
 }
-.firstpage figure img {
+.frontpage figure img {
   width: 100%;
 }
-.firstpage figcaption {
+.frontpage figcaption {
   font-style: italic;
   margin: 0 min(10vw, 20mm);
 }

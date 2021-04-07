@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@material-ui/core";
 
-export function Firstpage({ newDocumentPath, ssr }) {
+export function Frontpage({ newDocumentPath, ssr }) {
   let createSection;
   if (!ssr && newDocumentPath) {
     createSection = (

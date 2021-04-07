@@ -39,8 +39,8 @@ const appHandler = (propsFun) => async (req, res) => {
   );
 };
 
-function getFirstpageModel() {
-  return { view: "firstpage", newDocumentPath: `/d/${utils.rndId()}` };
+function getFrontpageModel() {
+  return { view: "frontpage", newDocumentPath: `/d/${utils.rndId()}` };
 }
 
 async function getDocumentModel(id) {
@@ -63,7 +63,7 @@ const handleAsyncErrors = (fun) => async (req, res, next) => {
 
 app.get(
   "/",
-  appHandler(() => ({ view: "firstpage", newDocumentPath: null }))
+  appHandler(() => ({ view: "frontpage", newDocumentPath: null }))
 );
 
 app.get(
@@ -75,7 +75,7 @@ app.get(
 
 // Models fetched by client-side scripts
 
-app.get("/modelfor/", (req, res) => res.send(getFirstpageModel()));
+app.get("/modelfor/", (req, res) => res.send(getFrontpageModel()));
 
 app.get(
   "/modelfor/d/:id",

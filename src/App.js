@@ -11,7 +11,7 @@ import * as http from "axios";
 import * as _ from "lodash";
 
 import reduce from "./reduce.js";
-import { Firstpage } from "./firstpage.js";
+import { Frontpage } from "./frontpage.js";
 
 class App extends React.Component {
   constructor(props) {
@@ -106,10 +106,10 @@ class App extends React.Component {
   render() {
     const { view } = this.props;
     const { newDocumentPath, ssr } = this.state;
-    if (view === "firstpage") {
+    if (view === "frontpage") {
       return (
         <div className={`App ${view}`}>
-          <Firstpage newDocumentPath={newDocumentPath} ssr={ssr} />
+          <Frontpage newDocumentPath={newDocumentPath} ssr={ssr} />
         </div>
       );
     }
